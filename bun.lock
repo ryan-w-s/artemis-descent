@@ -3,7 +3,7 @@
   "configVersion": 0,
   "workspaces": {
     "": {
-      "name": "template-vite-ts",
+      "name": "artemis-descent",
       "dependencies": {
         "phaser": "4.0.0",
         "terser": "^5.39.0",
