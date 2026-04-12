@@ -205,24 +205,25 @@ export class Game extends Scene
             return;
         }
 
-        const offset = (this.flight.elapsedMs * (0.2 + intensity * 0.36)) % 110;
-        const skew = clamp(this.capsule.lateralVelocity / BALANCE.capsule.maxLateralSpeed, -1, 1) * 18;
+        const bandSpacing = 92;
+        const offset = (this.flight.elapsedMs * (0.22 + intensity * 0.42)) % bandSpacing;
+        const drift = clamp(this.capsule.lateralVelocity / BALANCE.capsule.maxLateralSpeed, -1, 1) * 34;
         this.speedLines.lineStyle(2, 0xff7a2f, 0.08 + (intensity * 0.18));
 
-        for (let x = 150; x < 900; x += 62)
+        for (let y = 820 - offset; y > -80; y -= bandSpacing)
         {
-            for (let y = -160 + offset; y < 860; y += 150)
+            for (let x = 110; x < 920; x += 130)
             {
-                this.speedLines.lineBetween(x, y, x + skew, y + 96 + (intensity * 60));
+                this.speedLines.lineBetween(x + drift, y, x + drift + 74, y);
             }
         }
 
         this.speedLines.lineStyle(4, 0xffd166, 0.05 + (intensity * 0.08));
-        for (let x = 220; x < 840; x += 150)
+        for (let y = 780 - ((offset * 1.6) % 170); y > -100; y -= 170)
         {
-            for (let y = -120 + (offset * 1.4); y < 860; y += 240)
+            for (let x = 180; x < 880; x += 240)
             {
-                this.speedLines.lineBetween(x, y, x + (skew * 1.4), y + 130);
+                this.speedLines.lineBetween(x + (drift * 0.55), y, x + (drift * 0.55) + 112, y);
             }
         }
     }
@@ -355,12 +356,6 @@ export class Game extends Scene
         const graphics = this.add.graphics();
         graphics.fillGradientStyle(0x05070d, 0x05070d, 0x1f2937, 0x3b1012, 1);
         graphics.fillRect(0, 0, 1024, 768);
-
-        graphics.lineStyle(2, 0xf97316, 0.08);
-        for (let y = 140; y < 768; y += 55)
-        {
-            graphics.lineBetween(0, y, 1024, y + 90);
-        }
 
         graphics.fillStyle(0x93c5fd, 0.7);
         for (let i = 0; i < 52; i += 1)
