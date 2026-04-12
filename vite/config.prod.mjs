@@ -1,4 +1,4 @@
-import { defineConfig } from 'vite';
+import { defineConfig } from 'vite'
 
 export default defineConfig({
     base: './',
@@ -25,4 +25,4 @@ export default defineConfig({
     server: {
         port: 8080
     }
-});
+})

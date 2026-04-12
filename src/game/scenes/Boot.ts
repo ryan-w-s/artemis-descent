@@ -1,14 +1,14 @@
-import { Scene } from 'phaser';
+import { Scene } from 'phaser'
 
 export class Boot extends Scene
 {
     constructor ()
     {
-        super('Boot');
+        super('Boot')
     }
 
     create ()
     {
-        this.scene.start('Game');
+        this.scene.start('Game')
     }
 }

@@ -1,5 +1,5 @@
-import { Capsule } from '../entities/Capsule';
-import { Debris } from '../entities/Debris';
+import { Capsule } from '../entities/Capsule'
+import { Debris } from '../entities/Debris'
 
 export type CollisionResult = {
     debris: Debris[];
@@ -11,31 +11,31 @@ export class CollisionSystem
 {
     update (capsule: Capsule, debris: Debris[]): CollisionResult
     {
-        const survivors: Debris[] = [];
-        let impacts = 0;
-        let shieldGlances = 0;
+        const survivors: Debris[] = []
+        let impacts = 0
+        let shieldGlances = 0
 
         for (const item of debris)
         {
-            const distance = Math.hypot(item.x - capsule.x, item.y - capsule.y);
+            const distance = Math.hypot(item.x - capsule.x, item.y - capsule.y)
             if (distance <= item.radius + capsule.getCollisionRadius())
             {
                 if (capsule.isShieldFacingPoint(item.x, item.y))
                 {
-                    capsule.applyShieldGlance();
-                    shieldGlances += 1;
+                    capsule.applyShieldGlance()
+                    shieldGlances += 1
                 }
                 else
                 {
-                    capsule.applyImpact();
-                    impacts += 1;
+                    capsule.applyImpact()
+                    impacts += 1
                 }
 
-                item.destroy();
+                item.destroy()
             }
             else
             {
-                survivors.push(item);
+                survivors.push(item)
             }
         }
 
@@ -43,6 +43,6 @@ export class CollisionSystem
             debris: survivors,
             impacts,
             shieldGlances
-        };
+        }
     }
 }

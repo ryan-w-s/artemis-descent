@@ -63,4 +63,4 @@ export const BALANCE = {
         heatStressStart: 88,
         heatStressPerSecond: 7
     }
-} as const;
+} as const
