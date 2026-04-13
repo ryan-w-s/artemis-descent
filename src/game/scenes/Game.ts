@@ -9,7 +9,7 @@ import { InstabilitySystem } from '../systems/InstabilitySystem'
 import { SpawnSystem } from '../systems/SpawnSystem'
 import type { FailureReason, FlightState, HeatState, RunResult } from '../types'
 import { Hud } from '../ui/Hud'
-import { clamp, shortestAngle } from '../utils/math'
+import { clamp, lerp, shortestAngle } from '../utils/math'
 
 type ControlKeys = {
     left: Input.Keyboard.Key;
@@ -18,6 +18,40 @@ type ControlKeys = {
     d: Input.Keyboard.Key;
 };
 
+type Star = {
+    x: number;
+    y: number;
+    radius: number;
+    alpha: number;
+};
+
+const BACKDROP_STARS: Star[] = [
+    { x: 48, y: 42, radius: 1.1, alpha: 0.55 },
+    { x: 91, y: 196, radius: 1.7, alpha: 0.7 },
+    { x: 126, y: 82, radius: 0.9, alpha: 0.45 },
+    { x: 164, y: 238, radius: 1.4, alpha: 0.55 },
+    { x: 202, y: 34, radius: 1.2, alpha: 0.6 },
+    { x: 236, y: 156, radius: 1.8, alpha: 0.72 },
+    { x: 274, y: 95, radius: 0.8, alpha: 0.42 },
+    { x: 315, y: 218, radius: 1.3, alpha: 0.58 },
+    { x: 352, y: 52, radius: 1.5, alpha: 0.68 },
+    { x: 391, y: 128, radius: 0.9, alpha: 0.45 },
+    { x: 438, y: 247, radius: 1.9, alpha: 0.74 },
+    { x: 482, y: 72, radius: 1.2, alpha: 0.62 },
+    { x: 526, y: 188, radius: 1.6, alpha: 0.68 },
+    { x: 567, y: 31, radius: 0.8, alpha: 0.46 },
+    { x: 604, y: 226, radius: 1.4, alpha: 0.57 },
+    { x: 642, y: 115, radius: 1.1, alpha: 0.5 },
+    { x: 689, y: 66, radius: 1.7, alpha: 0.71 },
+    { x: 728, y: 249, radius: 1, alpha: 0.48 },
+    { x: 773, y: 172, radius: 1.5, alpha: 0.65 },
+    { x: 819, y: 47, radius: 0.9, alpha: 0.52 },
+    { x: 857, y: 214, radius: 1.8, alpha: 0.75 },
+    { x: 898, y: 105, radius: 1.2, alpha: 0.56 },
+    { x: 946, y: 232, radius: 1.4, alpha: 0.62 },
+    { x: 982, y: 58, radius: 1, alpha: 0.5 }
+]
+
 export class Game extends Scene
 {
     private capsule!: Capsule
@@ -25,6 +59,7 @@ export class Game extends Scene
     private flight!: FlightState
     private heat!: HeatState
     private debris: Debris[] = []
+    private backdrop!: GameObjects.Graphics
     private speedLines!: GameObjects.Graphics
     private ocean!: GameObjects.Graphics
     private impactFlash = 0
@@ -54,6 +89,7 @@ export class Game extends Scene
         this.impactFlash = 0
         this.ending = false
         this.spawnSystem.reset()
+        this.updateBackdropFx()
 
         this.capsule = new Capsule(this, 512, 392)
         this.hud = new Hud(this)
@@ -92,6 +128,7 @@ export class Game extends Scene
         )
 
         this.applyHeatStress(deltaSeconds)
+        this.updateBackdropFx()
         this.spawnSystem.update(this, this.debris, this.flight, 1024, 768)
         this.updateDebris(deltaSeconds)
         this.resolveCollisions()
@@ -193,6 +230,42 @@ export class Game extends Scene
         {
             this.cameras.main.shake(55, 0.0028)
         }
+    }
+
+    private updateBackdropFx (): void
+    {
+        const atmosphereProgress = smoothstep(this.flight.progress)
+        const starVisibility = 1 - smoothstep(clamp((this.flight.progress - 0.08) / 0.54, 0, 1))
+        const hazeVisibility = smoothstep(clamp((this.flight.progress - 0.18) / 0.62, 0, 1))
+        const horizonY = lerp(582, 426, atmosphereProgress)
+
+        const topColor = lerpColor(0x05070d, 0x4aa3df, atmosphereProgress)
+        const midColor = lerpColor(0x111827, 0x79c6f2, atmosphereProgress)
+        const bottomColor = lerpColor(0x3b1012, 0xa8daf5, atmosphereProgress)
+
+        this.backdrop.clear()
+        this.backdrop.fillGradientStyle(topColor, topColor, midColor, bottomColor, 1)
+        this.backdrop.fillRect(0, 0, 1024, 768)
+
+        if (starVisibility > 0.02)
+        {
+            for (const star of BACKDROP_STARS)
+            {
+                const driftY = star.y + (this.flight.progress * 54)
+                this.backdrop.fillStyle(0xdbeafe, star.alpha * starVisibility)
+                this.backdrop.fillCircle(star.x, driftY, star.radius)
+            }
+        }
+
+        if (hazeVisibility <= 0.02)
+        {
+            return
+        }
+
+        this.backdrop.fillGradientStyle(0x93c5fd, 0x93c5fd, 0xdbeafe, 0xdbeafe, 0.08 * hazeVisibility)
+        this.backdrop.fillRect(0, horizonY, 1024, 768 - horizonY)
+        this.backdrop.lineStyle(3, 0xe0f2fe, 0.16 * hazeVisibility)
+        this.backdrop.lineBetween(0, horizonY + 18, 1024, horizonY - 22)
     }
 
     private updateAtmosphereFx (heatRatio: number): void
@@ -353,17 +426,21 @@ export class Game extends Scene
 
     private drawBackdrop (): void
     {
-        const graphics = this.add.graphics()
-        graphics.fillGradientStyle(0x05070d, 0x05070d, 0x1f2937, 0x3b1012, 1)
-        graphics.fillRect(0, 0, 1024, 768)
-
-        graphics.fillStyle(0x93c5fd, 0.7)
-        for (let i = 0; i < 52; i += 1)
-        {
-            graphics.fillCircle(Math.random() * 1024, Math.random() * 260, Math.random() * 1.8)
-        }
-
+        this.backdrop = this.add.graphics()
         this.speedLines = this.add.graphics()
         this.ocean = this.add.graphics()
     }
+}
+
+const smoothstep = (amount: number): number => {
+    const value = clamp(amount, 0, 1)
+    return value * value * (3 - (2 * value))
+}
+
+const lerpColor = (from: number, to: number, amount: number): number => {
+    const red = Math.round(lerp((from >> 16) & 0xff, (to >> 16) & 0xff, amount))
+    const green = Math.round(lerp((from >> 8) & 0xff, (to >> 8) & 0xff, amount))
+    const blue = Math.round(lerp(from & 0xff, to & 0xff, amount))
+
+    return (red << 16) | (green << 8) | blue
 }
