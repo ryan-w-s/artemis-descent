@@ -28,9 +28,9 @@ export class SpawnSystem
     {
         const kind = this.getDebrisKind(flight.progress)
         const radius = randomBetween(BALANCE.debris.radiusMin, BALANCE.debris.radiusMax)
-        const x = randomBetween(width * 0.24, width * 0.76)
+        const x = randomBetween(width * 0.16, width * 0.84)
         const y = height + radius + randomBetween(0, height * 0.16)
-        const speedX = randomBetween(10, 58) * randomSign()
+        const speedX = randomBetween(8, 42) * randomSign()
         const speedY = -randomBetween(BALANCE.debris.speedMin, BALANCE.debris.speedMax)
 
         return new Debris(scene, x, y, speedX, speedY, radius, kind)

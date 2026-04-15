@@ -1,5 +1,6 @@
 import { GameObjects, Input, Scene } from 'phaser'
 import { BALANCE } from '../config/balance'
+import { GAME_CENTER_X, GAME_HEIGHT, GAME_WIDTH } from '../config/screen'
 import { Capsule } from '../entities/Capsule'
 import { Debris } from '../entities/Debris'
 import { CollisionSystem } from '../systems/CollisionSystem'
@@ -26,30 +27,21 @@ type Star = {
 };
 
 const BACKDROP_STARS: Star[] = [
-    { x: 48, y: 42, radius: 1.1, alpha: 0.55 },
-    { x: 91, y: 196, radius: 1.7, alpha: 0.7 },
-    { x: 126, y: 82, radius: 0.9, alpha: 0.45 },
-    { x: 164, y: 238, radius: 1.4, alpha: 0.55 },
-    { x: 202, y: 34, radius: 1.2, alpha: 0.6 },
-    { x: 236, y: 156, radius: 1.8, alpha: 0.72 },
-    { x: 274, y: 95, radius: 0.8, alpha: 0.42 },
-    { x: 315, y: 218, radius: 1.3, alpha: 0.58 },
-    { x: 352, y: 52, radius: 1.5, alpha: 0.68 },
-    { x: 391, y: 128, radius: 0.9, alpha: 0.45 },
-    { x: 438, y: 247, radius: 1.9, alpha: 0.74 },
-    { x: 482, y: 72, radius: 1.2, alpha: 0.62 },
-    { x: 526, y: 188, radius: 1.6, alpha: 0.68 },
-    { x: 567, y: 31, radius: 0.8, alpha: 0.46 },
-    { x: 604, y: 226, radius: 1.4, alpha: 0.57 },
-    { x: 642, y: 115, radius: 1.1, alpha: 0.5 },
-    { x: 689, y: 66, radius: 1.7, alpha: 0.71 },
-    { x: 728, y: 249, radius: 1, alpha: 0.48 },
-    { x: 773, y: 172, radius: 1.5, alpha: 0.65 },
-    { x: 819, y: 47, radius: 0.9, alpha: 0.52 },
-    { x: 857, y: 214, radius: 1.8, alpha: 0.75 },
-    { x: 898, y: 105, radius: 1.2, alpha: 0.56 },
-    { x: 946, y: 232, radius: 1.4, alpha: 0.62 },
-    { x: 982, y: 58, radius: 1, alpha: 0.5 }
+    { x: 28, y: 42, radius: 1.1, alpha: 0.55 },
+    { x: 62, y: 196, radius: 1.7, alpha: 0.7 },
+    { x: 84, y: 82, radius: 0.9, alpha: 0.45 },
+    { x: 112, y: 238, radius: 1.4, alpha: 0.55 },
+    { x: 141, y: 34, radius: 1.2, alpha: 0.6 },
+    { x: 164, y: 156, radius: 1.8, alpha: 0.72 },
+    { x: 188, y: 95, radius: 0.8, alpha: 0.42 },
+    { x: 214, y: 218, radius: 1.3, alpha: 0.58 },
+    { x: 238, y: 52, radius: 1.5, alpha: 0.68 },
+    { x: 262, y: 128, radius: 0.9, alpha: 0.45 },
+    { x: 289, y: 247, radius: 1.9, alpha: 0.74 },
+    { x: 318, y: 72, radius: 1.2, alpha: 0.62 },
+    { x: 352, y: 188, radius: 1.6, alpha: 0.68 },
+    { x: 381, y: 31, radius: 0.8, alpha: 0.46 },
+    { x: 405, y: 226, radius: 1.4, alpha: 0.57 }
 ]
 
 export class Game extends Scene
@@ -91,15 +83,16 @@ export class Game extends Scene
         this.spawnSystem.reset()
         this.updateBackdropFx()
 
-        this.capsule = new Capsule(this, 512, 392)
+        this.capsule = new Capsule(this, GAME_CENTER_X, 392)
         this.hud = new Hud(this)
         this.keys = this.createKeys()
 
-        this.add.text(512, 724, 'Keep the heat shield down. Left/Right or A/D to correct.', {
+        this.add.text(GAME_CENTER_X, GAME_HEIGHT - 36, 'Shield down. Left/Right or A/D to correct.', {
             fontFamily: 'Arial',
-            fontSize: 20,
+            fontSize: 17,
             color: '#cbd5e1',
-            align: 'center'
+            align: 'center',
+            wordWrap: { width: GAME_WIDTH - 48 }
         }).setOrigin(0.5)
     }
 
@@ -129,7 +122,7 @@ export class Game extends Scene
 
         this.applyHeatStress(deltaSeconds)
         this.updateBackdropFx()
-        this.spawnSystem.update(this, this.debris, this.flight, 1024, 768)
+        this.spawnSystem.update(this, this.debris, this.flight, GAME_WIDTH, GAME_HEIGHT)
         this.updateDebris(deltaSeconds)
         this.resolveCollisions()
 
@@ -175,7 +168,7 @@ export class Game extends Scene
         {
             item.update(deltaSeconds)
 
-            if (item.isOffscreen(1024, 768))
+            if (item.isOffscreen(GAME_WIDTH, GAME_HEIGHT))
             {
                 item.destroy()
             }
@@ -237,7 +230,7 @@ export class Game extends Scene
         const atmosphereProgress = smoothstep(this.flight.progress)
         const starVisibility = 1 - smoothstep(clamp((this.flight.progress - 0.08) / 0.54, 0, 1))
         const hazeVisibility = smoothstep(clamp((this.flight.progress - 0.18) / 0.62, 0, 1))
-        const horizonY = lerp(582, 426, atmosphereProgress)
+        const horizonY = lerp(606, 446, atmosphereProgress)
 
         const topColor = lerpColor(0x05070d, 0x4aa3df, atmosphereProgress)
         const midColor = lerpColor(0x111827, 0x79c6f2, atmosphereProgress)
@@ -245,7 +238,7 @@ export class Game extends Scene
 
         this.backdrop.clear()
         this.backdrop.fillGradientStyle(topColor, topColor, midColor, bottomColor, 1)
-        this.backdrop.fillRect(0, 0, 1024, 768)
+        this.backdrop.fillRect(0, 0, GAME_WIDTH, GAME_HEIGHT)
 
         if (starVisibility > 0.02)
         {
@@ -263,9 +256,9 @@ export class Game extends Scene
         }
 
         this.backdrop.fillGradientStyle(0x93c5fd, 0x93c5fd, 0xdbeafe, 0xdbeafe, 0.08 * hazeVisibility)
-        this.backdrop.fillRect(0, horizonY, 1024, 768 - horizonY)
+        this.backdrop.fillRect(0, horizonY, GAME_WIDTH, GAME_HEIGHT - horizonY)
         this.backdrop.lineStyle(3, 0xe0f2fe, 0.16 * hazeVisibility)
-        this.backdrop.lineBetween(0, horizonY + 18, 1024, horizonY - 22)
+        this.backdrop.lineBetween(0, horizonY + 18, GAME_WIDTH, horizonY - 22)
     }
 
     private updateAtmosphereFx (heatRatio: number): void
@@ -285,18 +278,18 @@ export class Game extends Scene
 
         for (let y = 820 - offset; y > -80; y -= bandSpacing)
         {
-            for (let x = 110; x < 920; x += 130)
+            for (let x = -20; x < GAME_WIDTH + 60; x += 96)
             {
-                this.speedLines.lineBetween(x + drift, y, x + drift + 74, y)
+                this.speedLines.lineBetween(x + drift, y, x + drift + 62, y)
             }
         }
 
         this.speedLines.lineStyle(4, 0xffd166, 0.05 + (intensity * 0.08))
         for (let y = 780 - ((offset * 1.6) % 170); y > -100; y -= 170)
         {
-            for (let x = 180; x < 880; x += 240)
+            for (let x = 34; x < GAME_WIDTH + 90; x += 170)
             {
-                this.speedLines.lineBetween(x + (drift * 0.55), y, x + (drift * 0.55) + 112, y)
+                this.speedLines.lineBetween(x + (drift * 0.55), y, x + (drift * 0.55) + 92, y)
             }
         }
     }
@@ -316,12 +309,12 @@ export class Game extends Scene
             return
         }
 
-        const surfaceY = 768 - (oceanProgress * 145)
+        const surfaceY = GAME_HEIGHT - (oceanProgress * 145)
         this.ocean.fillStyle(0x0f4c81, 0.82)
-        this.ocean.fillRect(0, surfaceY, 1024, 768 - surfaceY)
+        this.ocean.fillRect(0, surfaceY, GAME_WIDTH, GAME_HEIGHT - surfaceY)
         this.ocean.lineStyle(3, 0x7dd3fc, 0.45)
 
-        for (let x = -80; x < 1120; x += 120)
+        for (let x = -80; x < GAME_WIDTH + 120; x += 120)
         {
             const waveY = surfaceY + (Math.sin((this.flight.elapsedMs * 0.004) + x) * 8)
             this.ocean.lineBetween(x, waveY, x + 70, waveY + 5)
