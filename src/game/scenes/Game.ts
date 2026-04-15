@@ -44,6 +44,8 @@ const BACKDROP_STARS: Star[] = [
     { x: 405, y: 226, radius: 1.4, alpha: 0.57 }
 ]
 
+const CAPSULE_SCREEN_Y = 200
+
 export class Game extends Scene
 {
     private capsule!: Capsule
@@ -83,7 +85,7 @@ export class Game extends Scene
         this.spawnSystem.reset()
         this.updateBackdropFx()
 
-        this.capsule = new Capsule(this, GAME_CENTER_X, 392)
+        this.capsule = new Capsule(this, GAME_CENTER_X, CAPSULE_SCREEN_Y)
         this.hud = new Hud(this)
         this.keys = this.createKeys()
 
