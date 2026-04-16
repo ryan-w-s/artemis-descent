@@ -46,6 +46,8 @@ const BACKDROP_STARS: Star[] = [
 
 const CAPSULE_SCREEN_Y = 200
 const ATMOSPHERE_BACKDROP_START = 0.08
+const ALTITUDE_MARKER_INTERVAL = 100
+const ALTITUDE_MARKER_PIXELS_PER_UNIT = 4
 
 export class Game extends Scene
 {
@@ -55,7 +57,7 @@ export class Game extends Scene
     private heat!: HeatState
     private debris: Debris[] = []
     private backdrop!: GameObjects.Graphics
-    private speedLines!: GameObjects.Graphics
+    private altitudeLines!: GameObjects.Graphics
     private ocean!: GameObjects.Graphics
     private impactFlash = 0
     private ending = false
@@ -265,33 +267,35 @@ export class Game extends Scene
     private updateAtmosphereFx (heatRatio: number): void
     {
         const intensity = clamp((this.flight.atmosphere * 0.85) + (heatRatio * 0.45), 0, 1)
-        this.speedLines.clear()
+        this.altitudeLines.clear()
 
         if (intensity <= 0.05)
         {
             return
         }
 
-        const bandSpacing = 92
-        const offset = (this.flight.elapsedMs * (0.22 + intensity * 0.42)) % bandSpacing
+        const markerAlpha = 0.1 + (intensity * 0.16)
         const drift = clamp(this.capsule.lateralVelocity / BALANCE.capsule.maxLateralSpeed, -1, 1) * 34
-        this.speedLines.lineStyle(2, 0xff7a2f, 0.08 + (intensity * 0.18))
+        const firstMarker = Math.ceil(BALANCE.reentry.endingAltitude / ALTITUDE_MARKER_INTERVAL) * ALTITUDE_MARKER_INTERVAL
+        const lastMarker = Math.floor(BALANCE.reentry.startingAltitude / ALTITUDE_MARKER_INTERVAL) * ALTITUDE_MARKER_INTERVAL
 
-        for (let y = 820 - offset; y > -80; y -= bandSpacing)
+        for (let markerAltitude = firstMarker; markerAltitude <= lastMarker; markerAltitude += ALTITUDE_MARKER_INTERVAL)
         {
-            for (let x = -20; x < GAME_WIDTH + 60; x += 96)
-            {
-                this.speedLines.lineBetween(x + drift, y, x + drift + 62, y)
-            }
-        }
+            const y = CAPSULE_SCREEN_Y + ((this.flight.altitude - markerAltitude) * ALTITUDE_MARKER_PIXELS_PER_UNIT)
 
-        this.speedLines.lineStyle(4, 0xffd166, 0.05 + (intensity * 0.08))
-        for (let y = 780 - ((offset * 1.6) % 170); y > -100; y -= 170)
-        {
-            for (let x = 34; x < GAME_WIDTH + 90; x += 170)
+            if (y < -48 || y > GAME_HEIGHT + 48)
             {
-                this.speedLines.lineBetween(x + (drift * 0.55), y, x + (drift * 0.55) + 92, y)
+                continue
             }
+
+            const crossing = 1 - clamp(Math.abs(y - CAPSULE_SCREEN_Y) / 120, 0, 1)
+            const lineAlpha = markerAlpha + (crossing * 0.18)
+
+            this.altitudeLines.lineStyle(2, 0xffd166, lineAlpha)
+            this.altitudeLines.lineBetween(-24 + (drift * 0.2), y, GAME_WIDTH + 24 + (drift * 0.2), y)
+            this.altitudeLines.lineStyle(1, 0xff7a2f, lineAlpha * 0.55)
+            this.altitudeLines.lineBetween(24 + (drift * 0.32), y + 7, 112 + (drift * 0.32), y + 7)
+            this.altitudeLines.lineBetween(GAME_WIDTH - 112 + (drift * 0.32), y + 7, GAME_WIDTH - 24 + (drift * 0.32), y + 7)
         }
     }
 
@@ -421,7 +425,7 @@ export class Game extends Scene
     private drawBackdrop (): void
     {
         this.backdrop = this.add.graphics()
-        this.speedLines = this.add.graphics()
+        this.altitudeLines = this.add.graphics()
         this.ocean = this.add.graphics()
     }
 }
