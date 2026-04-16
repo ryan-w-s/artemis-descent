@@ -45,6 +45,7 @@ const BACKDROP_STARS: Star[] = [
 ]
 
 const CAPSULE_SCREEN_Y = 200
+const ATMOSPHERE_BACKDROP_START = 0.08
 
 export class Game extends Scene
 {
@@ -229,14 +230,14 @@ export class Game extends Scene
 
     private updateBackdropFx (): void
     {
-        const atmosphereProgress = smoothstep(this.flight.progress)
+        const atmosphereProgress = smoothstep(clamp((this.flight.progress - ATMOSPHERE_BACKDROP_START) / (1 - ATMOSPHERE_BACKDROP_START), 0, 1))
         const starVisibility = 1 - smoothstep(clamp((this.flight.progress - 0.08) / 0.54, 0, 1))
         const hazeVisibility = smoothstep(clamp((this.flight.progress - 0.18) / 0.62, 0, 1))
         const horizonY = lerp(606, 446, atmosphereProgress)
 
-        const topColor = lerpColor(0x05070d, 0x4aa3df, atmosphereProgress)
-        const midColor = lerpColor(0x111827, 0x79c6f2, atmosphereProgress)
-        const bottomColor = lerpColor(0x3b1012, 0xa8daf5, atmosphereProgress)
+        const topColor = lerpColor(0x06080d, 0x4aa3df, atmosphereProgress)
+        const midColor = lerpColor(0x06080d, 0x79c6f2, atmosphereProgress)
+        const bottomColor = lerpColor(0x06080d, 0xa8daf5, atmosphereProgress)
 
         this.backdrop.clear()
         this.backdrop.fillGradientStyle(topColor, topColor, midColor, bottomColor, 1)
@@ -259,8 +260,6 @@ export class Game extends Scene
 
         this.backdrop.fillGradientStyle(0x93c5fd, 0x93c5fd, 0xdbeafe, 0xdbeafe, 0.08 * hazeVisibility)
         this.backdrop.fillRect(0, horizonY, GAME_WIDTH, GAME_HEIGHT - horizonY)
-        this.backdrop.lineStyle(3, 0xe0f2fe, 0.16 * hazeVisibility)
-        this.backdrop.lineBetween(0, horizonY + 18, GAME_WIDTH, horizonY - 22)
     }
 
     private updateAtmosphereFx (heatRatio: number): void

@@ -25,7 +25,7 @@ export const BALANCE = {
         max: 100,
         warning: 66,
         critical: 86,
-        starting: 12,
+        starting: 0,
         baseGain: 0.25,
         shieldedGain: 1.4,
         errorGain: 80,
