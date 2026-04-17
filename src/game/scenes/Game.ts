@@ -48,6 +48,7 @@ const CAPSULE_SCREEN_Y = 200
 const ATMOSPHERE_BACKDROP_START = 0.08
 const ALTITUDE_MARKER_INTERVAL = 100
 const ALTITUDE_MARKER_PIXELS_PER_UNIT = 8
+const ALTITUDE_MARKER_LABELS = 4
 
 export class Game extends Scene
 {
@@ -58,6 +59,7 @@ export class Game extends Scene
     private debris: Debris[] = []
     private backdrop!: GameObjects.Graphics
     private altitudeLines!: GameObjects.Graphics
+    private altitudeLabels: GameObjects.Text[] = []
     private ocean!: GameObjects.Graphics
     private impactFlash = 0
     private ending = false
@@ -268,6 +270,7 @@ export class Game extends Scene
     {
         const intensity = clamp((this.flight.atmosphere * 0.85) + (heatRatio * 0.45), 0, 1)
         this.altitudeLines.clear()
+        this.hideAltitudeLabels()
 
         if (intensity <= 0.05)
         {
@@ -278,6 +281,7 @@ export class Game extends Scene
         const drift = clamp(this.capsule.lateralVelocity / BALANCE.capsule.maxLateralSpeed, -1, 1) * 34
         const firstMarker = Math.ceil(BALANCE.reentry.endingAltitude / ALTITUDE_MARKER_INTERVAL) * ALTITUDE_MARKER_INTERVAL
         const lastMarker = Math.floor(BALANCE.reentry.startingAltitude / ALTITUDE_MARKER_INTERVAL) * ALTITUDE_MARKER_INTERVAL
+        let labelIndex = 0
 
         for (let markerAltitude = firstMarker; markerAltitude <= lastMarker; markerAltitude += ALTITUDE_MARKER_INTERVAL)
         {
@@ -296,6 +300,24 @@ export class Game extends Scene
             this.altitudeLines.lineStyle(1, 0xff7a2f, lineAlpha * 0.55)
             this.altitudeLines.lineBetween(24 + (drift * 0.32), y + 7, 112 + (drift * 0.32), y + 7)
             this.altitudeLines.lineBetween(GAME_WIDTH - 112 + (drift * 0.32), y + 7, GAME_WIDTH - 24 + (drift * 0.32), y + 7)
+
+            if (labelIndex < this.altitudeLabels.length)
+            {
+                const label = this.altitudeLabels[labelIndex]
+                label.setText(`${markerAltitude}`)
+                label.setPosition(18 + (drift * 0.2), y - 1)
+                label.setAlpha(clamp(lineAlpha + 0.25, 0, 0.9))
+                label.setVisible(true)
+                labelIndex += 1
+            }
+        }
+    }
+
+    private hideAltitudeLabels (): void
+    {
+        for (const label of this.altitudeLabels)
+        {
+            label.setVisible(false)
         }
     }
 
@@ -427,6 +449,16 @@ export class Game extends Scene
         this.backdrop = this.add.graphics()
         this.altitudeLines = this.add.graphics()
         this.ocean = this.add.graphics()
+        this.altitudeLabels = Array.from({ length: ALTITUDE_MARKER_LABELS }, () => {
+            return this.add.text(0, 0, '', {
+                fontFamily: 'Arial',
+                fontSize: 13,
+                color: '#ffe6a3'
+            })
+                .setOrigin(0, 0.5)
+                .setStroke('#07111f', 4)
+                .setVisible(false)
+        })
     }
 }
 
