@@ -241,25 +241,25 @@ export class Game extends Scene
         const result = this.collisionSystem.update(this.capsule, this.debris)
         this.debris = result.debris
 
-        if (result.impacts === 0 && result.shieldGlances === 0)
+        if (result.impacts === 0)
         {
             return
         }
 
-        const heatImpulse = (result.impacts * BALANCE.capsule.heatImpulseOnImpact) + (result.shieldGlances * 4)
+        const heatImpulse = result.impacts * BALANCE.capsule.heatImpulseOnImpact
         this.heat.current = clamp(this.heat.current + heatImpulse, 0, BALANCE.heat.max)
         this.heat.maxObserved = Math.max(this.heat.maxObserved, this.heat.current)
         this.impactFlash = 1
-        this.showCollisionCue(result.impacts > 0 ? 'IMPACT' : 'SHIELD GLANCE', result.impacts > 0)
-        this.cameras.main.shake(110, result.impacts > 0 ? 0.006 : 0.003)
+        this.showCollisionCue('IMPACT')
+        this.cameras.main.shake(110, 0.006)
     }
 
-    private showCollisionCue (message: string, damaging: boolean): void
+    private showCollisionCue (message: string): void
     {
         this.collisionCueMs = COLLISION_CUE_MS
         this.collisionCue
             .setText(message)
-            .setColor(damaging ? '#fca5a5' : '#fde68a')
+            .setColor('#fca5a5')
             .setAlpha(1)
             .setVisible(true)
     }

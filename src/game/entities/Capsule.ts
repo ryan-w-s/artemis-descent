@@ -1,6 +1,6 @@
-import { GameObjects, Scene } from 'phaser'
+import { GameObjects, Math as PhaserMath, Scene } from 'phaser'
 import { BALANCE } from '../config/balance'
-import { clamp, normalizeAngle, shortestAngle } from '../utils/math'
+import { clamp, normalizeAngle } from '../utils/math'
 
 export type CapsuleControl = {
     left: boolean;
@@ -64,19 +64,6 @@ export class Capsule
     {
         this.damage = clamp(this.damage + BALANCE.capsule.impactDamage, 0, BALANCE.damage.max)
         this.angularVelocity += (Math.random() < 0.5 ? -1 : 1) * 1.8
-    }
-
-    applyShieldGlance (): void
-    {
-        this.angularVelocity += (Math.random() < 0.5 ? -1 : 1) * 0.55
-    }
-
-    isShieldFacingPoint (x: number, y: number): boolean
-    {
-        const hitDirection = Math.atan2(y - this.y, x - this.x)
-        const shieldDirection = this.angle + (Math.PI / 2)
-
-        return Math.abs(shortestAngle(hitDirection - shieldDirection)) < 0.95
     }
 
     updateSpinDanger (deltaMs: number): boolean
@@ -144,13 +131,43 @@ export class Capsule
             return
         }
 
+        const haloPadding = 5 + (intensity * 13)
+        const shieldBloom = intensity * 12
+        const outerAlpha = 0.16 + (intensity * 0.24)
+        const rimAlpha = 0.34 + (intensity * 0.36)
+
         this.plasma.setPosition(this.x, this.y)
         this.plasma.setRotation(this.angle)
-        this.plasma.fillStyle(0xff6b2b, 0.14 + (intensity * 0.3))
-        this.plasma.fillTriangle(-74, 24, 74, 24, 0, -30 - (intensity * 44))
-        this.plasma.fillEllipse(0, 22, 132 + (intensity * 48), 38 + (intensity * 26))
-        this.plasma.fillStyle(0xffd166, 0.1 + (intensity * 0.18))
-        this.plasma.fillTriangle(-42, 20, 42, 20, 0, -14 - (intensity * 30))
-        this.plasma.fillEllipse(0, 20, 74 + (intensity * 32), 18 + (intensity * 16))
+        this.plasma.fillStyle(0xff5a1f, outerAlpha)
+        this.plasma.fillPoints(this.createHeatSilhouette(haloPadding, shieldBloom), true, true)
+        this.plasma.lineStyle(4 + (intensity * 5), 0xffd166, rimAlpha)
+        this.drawShieldArc(this.plasma, 44 + haloPadding, 32 + shieldBloom)
+    }
+
+    private createHeatSilhouette (padding: number, shieldBloom: number): PhaserMath.Vector2[]
+    {
+        return [
+            new PhaserMath.Vector2(-28 - (padding * 0.7), -32 - padding),
+            new PhaserMath.Vector2(28 + (padding * 0.7), -32 - padding),
+            new PhaserMath.Vector2(38 + padding, 12 + (padding * 0.25)),
+            new PhaserMath.Vector2(42 + padding, 22 + (padding * 0.35)),
+            new PhaserMath.Vector2(34 + (padding * 0.75), 35 + padding + shieldBloom),
+            new PhaserMath.Vector2(-34 - (padding * 0.75), 35 + padding + shieldBloom),
+            new PhaserMath.Vector2(-42 - padding, 22 + (padding * 0.35)),
+            new PhaserMath.Vector2(-38 - padding, 12 + (padding * 0.25))
+        ]
+    }
+
+    private drawShieldArc (graphics: GameObjects.Graphics, halfWidth: number, y: number): void
+    {
+        graphics.beginPath()
+        graphics.moveTo(-halfWidth, y - 8)
+        graphics.lineTo(-halfWidth * 0.82, y + 4)
+        graphics.lineTo(-halfWidth * 0.46, y + 11)
+        graphics.lineTo(0, y + 13)
+        graphics.lineTo(halfWidth * 0.46, y + 11)
+        graphics.lineTo(halfWidth * 0.82, y + 4)
+        graphics.lineTo(halfWidth, y - 8)
+        graphics.strokePath()
     }
 }
