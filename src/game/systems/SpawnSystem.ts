@@ -40,7 +40,7 @@ export class SpawnSystem
     {
         if (progress < BALANCE.debris.satelliteProgress)
         {
-            return 'meteor'
+            return 'asteroid'
         }
 
         if (progress < BALANCE.debris.planeProgress)

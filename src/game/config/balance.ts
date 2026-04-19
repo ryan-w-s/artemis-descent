@@ -56,9 +56,9 @@ export const BALANCE = {
     },
     debris: {
         firstProgress: 0,
-        satelliteProgress: 0.4,
-        planeProgress: 0.68,
-        seagullProgress: 0.88,
+        satelliteProgress: 0.25,
+        planeProgress: 0.5,
+        seagullProgress: 0.75,
         spawnEveryMs: 820,
         spawnJitterMs: 360,
         speedMin: 260,

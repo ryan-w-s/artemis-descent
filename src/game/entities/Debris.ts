@@ -1,6 +1,6 @@
 import { GameObjects, Scene } from 'phaser'
 
-export type DebrisKind = 'meteor' | 'satellite' | 'plane' | 'seagull';
+export type DebrisKind = 'asteroid' | 'satellite' | 'plane' | 'seagull';
 
 export class Debris
 {
@@ -60,7 +60,7 @@ export class Debris
             case 'plane':
             case 'seagull':
                 return this.radius * 1.6
-            case 'meteor':
+            case 'asteroid':
                 return this.radius * 1.05
         }
     }
@@ -73,8 +73,8 @@ export class Debris
 
         switch (this.kind)
         {
-            case 'meteor':
-                this.drawMeteor()
+            case 'asteroid':
+                this.drawAsteroid()
                 break
             case 'satellite':
                 this.drawSatellite()
@@ -88,7 +88,7 @@ export class Debris
         }
     }
 
-    private drawMeteor (): void
+    private drawAsteroid (): void
     {
         this.body.fillStyle(0xa8a29e, 1)
         this.body.fillTriangle(-this.radius, -this.radius * 0.4, -this.radius * 0.2, -this.radius, this.radius, -this.radius * 0.2)
