@@ -6,11 +6,11 @@ import { randomBetween, randomSign } from '../utils/random'
 
 export class SpawnSystem
 {
-    private nextSpawnMs: number = BALANCE.debris.spawnEveryMs
+    private nextSpawnMs = 0
 
     reset (): void
     {
-        this.nextSpawnMs = BALANCE.debris.spawnEveryMs
+        this.nextSpawnMs = 0
     }
 
     update (scene: Scene, debris: Debris[], flight: FlightState, width: number, height: number): void

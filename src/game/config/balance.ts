@@ -55,7 +55,7 @@ export const BALANCE = {
         wobbleStrength: 3.4
     },
     debris: {
-        firstProgress: 0.22,
+        firstProgress: 0,
         satelliteProgress: 0.4,
         planeProgress: 0.68,
         seagullProgress: 0.88,

@@ -31,7 +31,7 @@ export class Capsule
         this.draw(0, 0)
     }
 
-    update (deltaSeconds: number, controls: CapsuleControl, disturbance: number, atmosphere: number, speed: number): void
+    update (deltaSeconds: number, controls: CapsuleControl, disturbance: number, _atmosphere: number, _speed: number): void
     {
         const direction = Number(controls.right) - Number(controls.left)
         const inputTorque = direction * BALANCE.capsule.controlTorque
@@ -45,7 +45,7 @@ export class Capsule
         )
 
         this.angle = normalizeAngle(this.angle + (this.angularVelocity * deltaSeconds))
-        this.lateralVelocity += Math.sin(this.angle) * BALANCE.capsule.lateralAcceleration * atmosphere * speed * deltaSeconds
+        this.lateralVelocity += Math.sin(this.angle) * BALANCE.capsule.lateralAcceleration * deltaSeconds
         this.lateralVelocity -= this.lateralVelocity * BALANCE.capsule.lateralDamping * deltaSeconds
         this.lateralVelocity = clamp(
             this.lateralVelocity,
