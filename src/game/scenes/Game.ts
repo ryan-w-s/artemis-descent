@@ -535,23 +535,6 @@ export class Game extends Scene
         this.parachute.lineBetween(this.capsule.x + 31, this.capsule.y - 22, this.capsule.x + (canopyWidth * 0.4), canopyY + 28)
         this.parachute.fillStyle(0xf8fafc, 0.92 * alpha)
         this.parachute.fillEllipse(this.capsule.x, canopyY + 24, canopyWidth, canopyHeight)
-        this.parachute.fillStyle(0xef4444, 0.72 * alpha)
-        this.parachute.fillTriangle(
-            this.capsule.x - (canopyWidth * 0.42),
-            canopyY + 24,
-            this.capsule.x,
-            canopyY - 6,
-            this.capsule.x,
-            canopyY + 24
-        )
-        this.parachute.fillTriangle(
-            this.capsule.x,
-            canopyY + 24,
-            this.capsule.x + (canopyWidth * 0.42),
-            canopyY + 24,
-            this.capsule.x,
-            canopyY - 6
-        )
         this.parachute.lineStyle(3, 0x0f172a, 0.74 * alpha)
         this.parachute.strokeEllipse(this.capsule.x, canopyY + 24, canopyWidth, canopyHeight)
     }
