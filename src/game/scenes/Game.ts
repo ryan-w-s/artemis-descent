@@ -28,6 +28,18 @@ type Star = {
 
 type LandingPhase = 'reentry' | 'parachute' | 'splashdown';
 
+type ConfettiPiece = {
+    x: number;
+    y: number;
+    velocityX: number;
+    velocityY: number;
+    rotation: number;
+    spin: number;
+    size: number;
+    color: number;
+    delay: number;
+};
+
 const BACKDROP_STARS: Star[] = [
     { x: 28, y: 42, radius: 1.1, alpha: 0.55 },
     { x: 62, y: 196, radius: 1.7, alpha: 0.7 },
@@ -64,7 +76,9 @@ export class Game extends Scene
     private altitudeLabels: GameObjects.Text[] = []
     private ocean!: GameObjects.Graphics
     private parachute!: GameObjects.Graphics
+    private confetti!: GameObjects.Graphics
     private landingText!: GameObjects.Text
+    private confettiPieces: ConfettiPiece[] = []
     private impactFlash = 0
     private ending = false
     private landingPhase: LandingPhase = 'reentry'
@@ -97,10 +111,12 @@ export class Game extends Scene
         this.landingPhase = 'reentry'
         this.landingElapsedMs = 0
         this.splashdownElapsedMs = 0
+        this.confettiPieces = []
         this.spawnSystem.reset()
         this.updateBackdropFx()
         this.updateOceanFx(0)
         this.drawParachute(0)
+        this.drawConfetti(0)
 
         this.capsule = new Capsule(this, GAME_CENTER_X, CAPSULE_SCREEN_Y)
         this.hud = new Hud(this)
@@ -400,6 +416,7 @@ export class Game extends Scene
         this.hideAltitudeLabels()
         this.capsule.render(heatRatio, this.flight.atmosphere, 0, 0)
         this.drawSplashdownBurst(progress)
+        this.drawConfetti(progress)
     }
 
     private updateOceanFx (landingProgress: number): void
@@ -486,7 +503,9 @@ export class Game extends Scene
         this.debris = []
         this.parachute.clear()
         this.landingText.setText('SPLASHDOWN')
+        this.confettiPieces = this.createConfettiPieces()
         this.drawSplashdownBurst(0)
+        this.drawConfetti(0)
         this.cameras.main.shake(260, 0.004)
 
         this.time.delayedCall(BALANCE.landing.splashdownDurationMs, () => {
@@ -555,6 +574,68 @@ export class Game extends Scene
         this.ocean.lineBetween(this.capsule.x + (sprayReach * 0.72), centerY - 10, this.capsule.x + 16, centerY - (sprayLift * 0.35))
     }
 
+    private createConfettiPieces (): ConfettiPiece[]
+    {
+        const colors = [0xfacc15, 0x22c55e, 0x38bdf8, 0xf472b6, 0xf97316, 0xe0f2fe]
+
+        return Array.from({ length: 36 }, () => {
+            const angle = (-Math.PI / 2) + ((Math.random() - 0.5) * 1.35)
+            const speed = 150 + (Math.random() * 190)
+
+            return {
+                x: this.capsule.x + ((Math.random() - 0.5) * 36),
+                y: this.capsule.y + 20 + (Math.random() * 28),
+                velocityX: Math.cos(angle) * speed,
+                velocityY: Math.sin(angle) * speed,
+                rotation: Math.random() * Math.PI,
+                spin: (Math.random() - 0.5) * 9,
+                size: 4 + (Math.random() * 5),
+                color: colors[Math.floor(Math.random() * colors.length)] ?? 0xe0f2fe,
+                delay: Math.random() * 0.22
+            }
+        })
+    }
+
+    private drawConfetti (splashProgress: number): void
+    {
+        this.confetti.clear()
+
+        if (this.confettiPieces.length === 0)
+        {
+            return
+        }
+
+        const elapsedSeconds = (splashProgress * BALANCE.landing.splashdownDurationMs) / 1000
+
+        for (const piece of this.confettiPieces)
+        {
+            const age = elapsedSeconds - piece.delay
+
+            if (age <= 0)
+            {
+                continue
+            }
+
+            const x = piece.x + (piece.velocityX * age)
+            const y = piece.y + (piece.velocityY * age) + (360 * age * age)
+            const alpha = 1 - smoothstep(clamp((age - 0.42) / 0.55, 0, 1))
+            const rotation = piece.rotation + (piece.spin * age)
+            const halfSize = piece.size * 0.5
+
+            if (alpha <= 0)
+            {
+                continue
+            }
+
+            this.confetti.save()
+            this.confetti.translateCanvas(x, y)
+            this.confetti.rotateCanvas(rotation)
+            this.confetti.fillStyle(piece.color, alpha)
+            this.confetti.fillRect(-halfSize, -halfSize, piece.size, piece.size * 0.62)
+            this.confetti.restore()
+        }
+    }
+
     private drawParachute (progress: number): void
     {
         this.parachute.clear()
@@ -585,10 +666,12 @@ export class Game extends Scene
         this.altitudeLines = this.add.graphics()
         this.ocean = this.add.graphics()
         this.parachute = this.add.graphics()
+        this.confetti = this.add.graphics()
         this.backdrop.setDepth(-30)
         this.altitudeLines.setDepth(-20)
         this.parachute.setDepth(1)
         this.ocean.setDepth(2)
+        this.confetti.setDepth(3)
         this.landingText = this.add.text(GAME_CENTER_X, 156, '', {
             fontFamily: 'Arial Black',
             fontSize: 23,
