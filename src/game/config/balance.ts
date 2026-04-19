@@ -8,6 +8,7 @@ export const BALANCE = {
     },
     landing: {
         parachuteDurationMs: 3200,
+        splashdownDurationMs: 950,
         waterStartY: 820,
         waterSurfaceY: 226
     },

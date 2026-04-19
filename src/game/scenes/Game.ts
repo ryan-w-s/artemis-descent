@@ -69,6 +69,7 @@ export class Game extends Scene
     private ending = false
     private landingPhase: LandingPhase = 'reentry'
     private landingElapsedMs = 0
+    private splashdownElapsedMs = 0
 
     private readonly flightSystem = new FlightSystem()
     private readonly heatSystem = new HeatSystem()
@@ -95,6 +96,7 @@ export class Game extends Scene
         this.ending = false
         this.landingPhase = 'reentry'
         this.landingElapsedMs = 0
+        this.splashdownElapsedMs = 0
         this.spawnSystem.reset()
         this.updateBackdropFx()
         this.updateOceanFx(0)
@@ -115,6 +117,12 @@ export class Game extends Scene
 
     update (_time: number, deltaMs: number): void
     {
+        if (this.landingPhase === 'splashdown')
+        {
+            this.updateSplashdown(deltaMs)
+            return
+        }
+
         if (this.ending)
         {
             return
@@ -376,6 +384,24 @@ export class Game extends Scene
         }
     }
 
+    private updateSplashdown (deltaMs: number): void
+    {
+        this.splashdownElapsedMs += deltaMs
+        this.flight = {
+            ...this.flight,
+            elapsedMs: this.flight.elapsedMs + deltaMs
+        }
+
+        const progress = clamp(this.splashdownElapsedMs / BALANCE.landing.splashdownDurationMs, 0, 1)
+        const heatRatio = clamp(this.heat.current / BALANCE.heat.max, 0, 1)
+
+        this.updateBackdropFx()
+        this.altitudeLines.clear()
+        this.hideAltitudeLabels()
+        this.capsule.render(heatRatio, this.flight.atmosphere, 0, 0)
+        this.drawSplashdownBurst(progress)
+    }
+
     private updateOceanFx (landingProgress: number): void
     {
         this.ocean.clear()
@@ -454,15 +480,16 @@ export class Game extends Scene
         }
 
         this.landingPhase = 'splashdown'
+        this.splashdownElapsedMs = 0
         this.ending = true
         this.debris.forEach((item) => item.destroy())
         this.debris = []
         this.parachute.clear()
         this.landingText.setText('SPLASHDOWN')
-        this.drawSplashdownBurst()
+        this.drawSplashdownBurst(0)
         this.cameras.main.shake(260, 0.004)
 
-        this.time.delayedCall(950, () => {
+        this.time.delayedCall(BALANCE.landing.splashdownDurationMs, () => {
             const result: RunResult = {
                 survived: true,
                 reason: 'Descent complete',
@@ -503,16 +530,29 @@ export class Game extends Scene
         return clamp(Math.abs(this.capsule.angularVelocity) / BALANCE.capsule.maxAngularVelocity, 0, 1)
     }
 
-    private drawSplashdownBurst (): void
+    private drawSplashdownBurst (progress: number): void
     {
         this.updateOceanFx(1)
-        this.ocean.fillStyle(0xe0f2fe, 0.9)
-        this.ocean.fillCircle(this.capsule.x, this.capsule.y + 38, 46)
-        this.ocean.fillStyle(0x7dd3fc, 0.75)
-        this.ocean.fillEllipse(this.capsule.x, this.capsule.y + 60, 170, 34)
-        this.ocean.lineStyle(5, 0xe0f2fe, 0.8)
-        this.ocean.lineBetween(this.capsule.x - 86, this.capsule.y + 52, this.capsule.x - 22, this.capsule.y + 4)
-        this.ocean.lineBetween(this.capsule.x + 86, this.capsule.y + 52, this.capsule.x + 22, this.capsule.y + 4)
+
+        const spread = smoothstep(progress)
+        const fade = 1 - smoothstep(clamp((progress - 0.58) / 0.42, 0, 1))
+        const centerY = this.capsule.y + 48
+        const rippleWidth = lerp(18, 214, spread)
+        const rippleHeight = lerp(8, 32, spread)
+        const innerWidth = lerp(8, 124, spread)
+        const sprayReach = lerp(8, 104, spread)
+        const sprayLift = lerp(2, 36, spread)
+
+        this.ocean.fillStyle(0x7dd3fc, 0.56 * fade)
+        this.ocean.fillEllipse(this.capsule.x, centerY + 6, rippleWidth, rippleHeight)
+        this.ocean.fillStyle(0xbae6fd, 0.38 * fade)
+        this.ocean.fillEllipse(this.capsule.x, centerY, innerWidth, lerp(6, 18, spread))
+        this.ocean.lineStyle(4, 0xbae6fd, 0.62 * fade)
+        this.ocean.lineBetween(this.capsule.x - sprayReach, centerY, this.capsule.x - (sprayReach * 0.36), centerY - sprayLift)
+        this.ocean.lineBetween(this.capsule.x + sprayReach, centerY, this.capsule.x + (sprayReach * 0.36), centerY - sprayLift)
+        this.ocean.lineStyle(2, 0xe0f2fe, 0.46 * fade)
+        this.ocean.lineBetween(this.capsule.x - (sprayReach * 0.72), centerY - 10, this.capsule.x - 16, centerY - (sprayLift * 0.35))
+        this.ocean.lineBetween(this.capsule.x + (sprayReach * 0.72), centerY - 10, this.capsule.x + 16, centerY - (sprayLift * 0.35))
     }
 
     private drawParachute (progress: number): void
