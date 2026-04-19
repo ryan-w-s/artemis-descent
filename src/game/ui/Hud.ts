@@ -14,8 +14,9 @@ export class Hud
     private readonly heatFill: GameObjects.Rectangle
     private readonly altitudeBack: GameObjects.Rectangle
     private readonly altitudeFill: GameObjects.Rectangle
+    private readonly damageBack: GameObjects.Rectangle
+    private readonly damageFill: GameObjects.Rectangle
     private readonly warning: GameObjects.Text
-    private readonly status: GameObjects.Text
 
     constructor (scene: Scene)
     {
@@ -27,7 +28,11 @@ export class Hud
         this.altitudeFill = scene.add.rectangle(HUD_MARGIN, 82, HEAT_FILL_MAX, 8, 0x86efac, 1).setOrigin(0, 0.5)
         scene.add.text(HUD_MARGIN, 60, 'DESCENT', { fontFamily: 'Arial Black', fontSize: 14, color: '#e2e8f0' })
 
-        this.warning = scene.add.text(GAME_CENTER_X, 126, '', {
+        this.damageBack = scene.add.rectangle(HUD_MARGIN, 124, METER_WIDTH, 12, 0x111827, 0.9).setOrigin(0, 0.5)
+        this.damageFill = scene.add.rectangle(HUD_MARGIN, 124, 4, 8, 0x22c55e, 1).setOrigin(0, 0.5)
+        scene.add.text(HUD_MARGIN, 102, 'DAMAGE', { fontFamily: 'Arial Black', fontSize: 14, color: '#e2e8f0' })
+
+        this.warning = scene.add.text(GAME_CENTER_X, 164, '', {
             fontFamily: 'Arial Black',
             fontSize: 22,
             color: '#fca5a5',
@@ -37,15 +42,9 @@ export class Hud
             wordWrap: { width: GAME_WIDTH - 32 }
         }).setOrigin(0.5)
 
-        this.status = scene.add.text(GAME_WIDTH - HUD_MARGIN, 99, '', {
-            fontFamily: 'Arial',
-            fontSize: 15,
-            color: '#cbd5e1',
-            align: 'right'
-        }).setOrigin(1, 0)
-
         this.heatBack.setStrokeStyle(2, 0x334155)
         this.altitudeBack.setStrokeStyle(2, 0x334155)
+        this.damageBack.setStrokeStyle(2, 0x334155)
     }
 
     update (flight: FlightState, heat: HeatState, orientationError: number, damage: number, spinRatio: number): void
@@ -56,6 +55,10 @@ export class Hud
 
         this.altitudeFill.width = Math.max(4, HEAT_FILL_MAX * (1 - flight.progress))
         this.altitudeFill.fillColor = flight.progress > 0.72 ? 0xf97316 : 0x86efac
+
+        const damageRatio = clamp(damage / BALANCE.damage.max, 0, 1)
+        this.damageFill.width = Math.max(4, HEAT_FILL_MAX * damageRatio)
+        this.damageFill.fillColor = damageRatio > 0.72 ? 0xef4444 : damageRatio > 0.42 ? 0xf97316 : 0x22c55e
 
         if (orientationError >= BALANCE.heat.wrongSideAngle)
         {
@@ -77,12 +80,5 @@ export class Hud
         {
             this.warning.setText('')
         }
-
-        this.status.setText([
-            `ALT ${Math.ceil(flight.altitude)} km`,
-            orientationError < BALANCE.orientation.warningAngle ? 'SHIELD LOCK' : 'OFF AXIS',
-            `DAMAGE ${Math.round(damage)}%`,
-            `STABILITY ${Math.round((1 - spinRatio) * 100)}%`
-        ].join('\n'))
     }
 }
