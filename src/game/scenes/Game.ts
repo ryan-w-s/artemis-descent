@@ -107,11 +107,9 @@ export class Game extends Scene
     {
         const deltaSeconds = deltaMs / 1000
         const disturbanceAngleSigned = shortestAngle(this.capsule.angle)
-        const heatRatioForDisturbance = clamp(this.heat.current / BALANCE.heat.max, 0, 1)
         const disturbance = this.instabilitySystem.calculateDisturbance(
             this.flight,
             disturbanceAngleSigned,
-            heatRatioForDisturbance,
             this.capsule.angularVelocity
         )
 
@@ -212,9 +210,14 @@ export class Game extends Scene
             return
         }
 
-        const stress = (this.heat.current - BALANCE.damage.heatStressStart) / (BALANCE.heat.max - BALANCE.damage.heatStressStart)
+        const stress = clamp(
+            (this.heat.current - BALANCE.damage.heatStressStart) / (BALANCE.heat.max - BALANCE.damage.heatStressStart),
+            0,
+            1
+        )
+        const creep = Math.pow(stress, 1.35) * BALANCE.damage.heatStressPerSecond * deltaSeconds
         this.capsule.damage = clamp(
-            this.capsule.damage + (stress * BALANCE.damage.heatStressPerSecond * deltaSeconds),
+            this.capsule.damage + creep,
             0,
             BALANCE.damage.max
         )
@@ -365,11 +368,6 @@ export class Game extends Scene
 
     private getFailureReason (): FailureReason | undefined
     {
-        if (this.heat.current >= BALANCE.heat.max)
-        {
-            return 'Overheated'
-        }
-
         if (this.capsule.damage >= BALANCE.damage.max)
         {
             return 'Hull breached'

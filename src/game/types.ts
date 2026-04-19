@@ -1,4 +1,4 @@
-export type FailureReason = 'Overheated' | 'Wrong side exposed' | 'Spun out' | 'Hull breached';
+export type FailureReason = 'Wrong side exposed' | 'Spun out' | 'Hull breached';
 
 export type RunResult = {
     survived: boolean;

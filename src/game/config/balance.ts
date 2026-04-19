@@ -44,7 +44,6 @@ export const BALANCE = {
     instability: {
         baseTorque: 1.1,
         atmosphereTorque: 3.3,
-        heatInfluence: 1.8,
         errorInfluence: 3.2,
         wobbleFrequency: 0.006,
         wobbleStrength: 3.4
@@ -63,7 +62,7 @@ export const BALANCE = {
     },
     damage: {
         max: 100,
-        heatStressStart: 88,
-        heatStressPerSecond: 7
+        heatStressStart: 50,
+        heatStressPerSecond: 6.5
     }
 } as const

@@ -33,7 +33,6 @@ export class GameOver extends Scene
             status,
             '',
             `Time in corridor: ${this.result.durationSeconds.toFixed(1)}s`,
-            `Peak heat: ${Math.round(this.result.maxHeat)}%`,
             `Hull damage: ${Math.round(this.result.damage)}%`,
             '',
             'Press SPACE, R, or click to retry'
