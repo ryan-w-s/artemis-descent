@@ -51,6 +51,20 @@ export class Debris
         this.body.destroy()
     }
 
+    getCollisionRadius (): number
+    {
+        switch (this.kind)
+        {
+            case 'satellite':
+                return this.radius * 1.85
+            case 'plane':
+            case 'seagull':
+                return this.radius * 1.6
+            case 'meteor':
+                return this.radius * 1.05
+        }
+    }
+
     private draw (): void
     {
         this.body.clear()

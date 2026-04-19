@@ -18,7 +18,7 @@ export class CollisionSystem
         for (const item of debris)
         {
             const distance = Math.hypot(item.x - capsule.x, item.y - capsule.y)
-            if (distance <= item.radius + capsule.getCollisionRadius())
+            if (distance <= item.getCollisionRadius() + capsule.getCollisionRadius())
             {
                 if (capsule.isShieldFacingPoint(item.x, item.y))
                 {

@@ -63,6 +63,7 @@ const ATMOSPHERE_BACKDROP_START = 0.08
 const ALTITUDE_MARKER_INTERVAL = 100
 const ALTITUDE_MARKER_PIXELS_PER_UNIT = 8
 const ALTITUDE_MARKER_LABELS = 4
+const COLLISION_CUE_MS = 520
 
 export class Game extends Scene
 {
@@ -77,9 +78,11 @@ export class Game extends Scene
     private ocean!: GameObjects.Graphics
     private parachute!: GameObjects.Graphics
     private confetti!: GameObjects.Graphics
+    private collisionCue!: GameObjects.Text
     private landingText!: GameObjects.Text
     private confettiPieces: ConfettiPiece[] = []
     private impactFlash = 0
+    private collisionCueMs = 0
     private ending = false
     private landingPhase: LandingPhase = 'reentry'
     private landingElapsedMs = 0
@@ -107,6 +110,7 @@ export class Game extends Scene
         this.heat = this.heatSystem.createInitialState()
         this.debris = []
         this.impactFlash = 0
+        this.collisionCueMs = 0
         this.ending = false
         this.landingPhase = 'reentry'
         this.landingElapsedMs = 0
@@ -178,6 +182,7 @@ export class Game extends Scene
 
         this.impactFlash = Math.max(0, this.impactFlash - (deltaSeconds * 4))
         this.capsule.updateSpinDanger(deltaMs)
+        this.updateCollisionCue(deltaMs)
         const heatRatio = clamp(this.heat.current / BALANCE.heat.max, 0, 1)
         this.capsule.render(heatRatio, this.flight.atmosphere, orientationError, this.impactFlash)
         this.updateAtmosphereFx(heatRatio)
@@ -245,7 +250,30 @@ export class Game extends Scene
         this.heat.current = clamp(this.heat.current + heatImpulse, 0, BALANCE.heat.max)
         this.heat.maxObserved = Math.max(this.heat.maxObserved, this.heat.current)
         this.impactFlash = 1
+        this.showCollisionCue(result.impacts > 0 ? 'IMPACT' : 'SHIELD GLANCE', result.impacts > 0)
         this.cameras.main.shake(110, result.impacts > 0 ? 0.006 : 0.003)
+    }
+
+    private showCollisionCue (message: string, damaging: boolean): void
+    {
+        this.collisionCueMs = COLLISION_CUE_MS
+        this.collisionCue
+            .setText(message)
+            .setColor(damaging ? '#fca5a5' : '#fde68a')
+            .setAlpha(1)
+            .setVisible(true)
+    }
+
+    private updateCollisionCue (deltaMs: number): void
+    {
+        if (this.collisionCueMs <= 0)
+        {
+            this.collisionCue.setVisible(false)
+            return
+        }
+
+        this.collisionCueMs = Math.max(0, this.collisionCueMs - deltaMs)
+        this.collisionCue.setAlpha(clamp(this.collisionCueMs / COLLISION_CUE_MS, 0, 1))
     }
 
     private applyHeatStress (deltaSeconds: number): void
@@ -672,6 +700,15 @@ export class Game extends Scene
         this.parachute.setDepth(1)
         this.ocean.setDepth(2)
         this.confetti.setDepth(3)
+        this.collisionCue = this.add.text(GAME_CENTER_X, CAPSULE_SCREEN_Y + 72, '', {
+            fontFamily: 'Arial Black',
+            fontSize: 18,
+            color: '#fde68a',
+            stroke: '#05060a',
+            strokeThickness: 5,
+            align: 'center',
+            wordWrap: { width: GAME_WIDTH - 32 }
+        }).setOrigin(0.5).setDepth(5).setVisible(false)
         this.landingText = this.add.text(GAME_CENTER_X, 156, '', {
             fontFamily: 'Arial Black',
             fontSize: 23,
