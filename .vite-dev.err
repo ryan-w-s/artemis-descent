@@ -1,1 +1,2 @@
 $ vite --config vite/config.dev.mjs --host "127.0.0.1"
+error: script "dev" exited with code 58

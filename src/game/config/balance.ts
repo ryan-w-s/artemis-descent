@@ -6,6 +6,11 @@ export const BALANCE = {
         speedMin: 0.7,
         speedMax: 1.45
     },
+    landing: {
+        parachuteDurationMs: 3200,
+        waterStartY: 820,
+        waterSurfaceY: 226
+    },
     capsule: {
         controlTorque: 8.8,
         damping: 4.8,

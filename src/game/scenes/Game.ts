@@ -26,6 +26,8 @@ type Star = {
     alpha: number;
 };
 
+type LandingPhase = 'reentry' | 'parachute' | 'splashdown';
+
 const BACKDROP_STARS: Star[] = [
     { x: 28, y: 42, radius: 1.1, alpha: 0.55 },
     { x: 62, y: 196, radius: 1.7, alpha: 0.7 },
@@ -61,8 +63,12 @@ export class Game extends Scene
     private altitudeLines!: GameObjects.Graphics
     private altitudeLabels: GameObjects.Text[] = []
     private ocean!: GameObjects.Graphics
+    private parachute!: GameObjects.Graphics
+    private landingText!: GameObjects.Text
     private impactFlash = 0
     private ending = false
+    private landingPhase: LandingPhase = 'reentry'
+    private landingElapsedMs = 0
 
     private readonly flightSystem = new FlightSystem()
     private readonly heatSystem = new HeatSystem()
@@ -87,8 +93,12 @@ export class Game extends Scene
         this.debris = []
         this.impactFlash = 0
         this.ending = false
+        this.landingPhase = 'reentry'
+        this.landingElapsedMs = 0
         this.spawnSystem.reset()
         this.updateBackdropFx()
+        this.updateOceanFx(0)
+        this.drawParachute(0)
 
         this.capsule = new Capsule(this, GAME_CENTER_X, CAPSULE_SCREEN_Y)
         this.hud = new Hud(this)
@@ -105,6 +115,17 @@ export class Game extends Scene
 
     update (_time: number, deltaMs: number): void
     {
+        if (this.ending)
+        {
+            return
+        }
+
+        if (this.landingPhase === 'parachute')
+        {
+            this.updateLanding(deltaMs)
+            return
+        }
+
         const deltaSeconds = deltaMs / 1000
         const disturbanceAngleSigned = shortestAngle(this.capsule.angle)
         const disturbance = this.instabilitySystem.calculateDisturbance(
@@ -136,7 +157,7 @@ export class Game extends Scene
         const heatRatio = clamp(this.heat.current / BALANCE.heat.max, 0, 1)
         this.capsule.render(heatRatio, this.flight.atmosphere, orientationError, this.impactFlash)
         this.updateAtmosphereFx(heatRatio)
-        this.updateOceanFx()
+        this.updateOceanFx(0)
         this.hud.update(this.flight, this.heat, orientationError, this.capsule.damage, this.getSpinRatio())
         this.applyDangerShake(orientationError)
         this.checkEndState()
@@ -324,22 +345,47 @@ export class Game extends Scene
         }
     }
 
-    private updateOceanFx (): void
+    private updateLanding (deltaMs: number): void
     {
-        if (this.ending)
-        {
-            return
+        this.landingElapsedMs += deltaMs
+        this.flight = {
+            ...this.flight,
+            elapsedMs: this.flight.elapsedMs + deltaMs
         }
 
-        const oceanProgress = clamp((this.flight.progress - 0.82) / 0.18, 0, 1)
+        const progress = clamp(this.landingElapsedMs / BALANCE.landing.parachuteDurationMs, 0, 1)
+        const easedProgress = smoothstep(progress)
+        const heatRatio = clamp(this.heat.current / BALANCE.heat.max, 0, 1)
+
+        this.heat.current = Math.max(BALANCE.heat.starting, this.heat.current - (16 * (deltaMs / 1000)))
+        this.capsule.angularVelocity *= Math.max(0, 1 - (3.8 * (deltaMs / 1000)))
+        this.capsule.angle = shortestAngle(this.capsule.angle * Math.max(0, 1 - (1.8 * (deltaMs / 1000))))
+        this.impactFlash = Math.max(0, this.impactFlash - ((deltaMs / 1000) * 4))
+
+        this.updateBackdropFx()
+        this.altitudeLines.clear()
+        this.hideAltitudeLabels()
+        this.capsule.render(heatRatio, this.flight.atmosphere, 0, this.impactFlash)
+        this.drawParachute(easedProgress)
+        this.updateOceanFx(easedProgress)
+        this.hud.update(this.flight, this.heat, 0, this.capsule.damage, 0)
+
+        if (progress >= 1)
+        {
+            this.startSplashdown()
+        }
+    }
+
+    private updateOceanFx (landingProgress: number): void
+    {
         this.ocean.clear()
 
-        if (oceanProgress <= 0)
+        if (landingProgress <= 0)
         {
             return
         }
 
-        const surfaceY = GAME_HEIGHT - (oceanProgress * 145)
+        const surfaceY = lerp(BALANCE.landing.waterStartY, BALANCE.landing.waterSurfaceY, landingProgress)
         this.ocean.fillStyle(0x0f4c81, 0.82)
         this.ocean.fillRect(0, surfaceY, GAME_WIDTH, GAME_HEIGHT - surfaceY)
         this.ocean.lineStyle(3, 0x7dd3fc, 0.45)
@@ -355,7 +401,7 @@ export class Game extends Scene
     {
         if (this.flight.altitude <= BALANCE.reentry.endingAltitude)
         {
-            this.startSplashdown()
+            this.startParachuteLanding()
             return
         }
 
@@ -407,9 +453,12 @@ export class Game extends Scene
             return
         }
 
+        this.landingPhase = 'splashdown'
         this.ending = true
         this.debris.forEach((item) => item.destroy())
         this.debris = []
+        this.parachute.clear()
+        this.landingText.setText('SPLASHDOWN')
         this.drawSplashdownBurst()
         this.cameras.main.shake(260, 0.004)
 
@@ -426,6 +475,29 @@ export class Game extends Scene
         })
     }
 
+    private startParachuteLanding (): void
+    {
+        if (this.landingPhase !== 'reentry')
+        {
+            return
+        }
+
+        this.landingPhase = 'parachute'
+        this.landingElapsedMs = 0
+        this.flight = {
+            ...this.flight,
+            altitude: BALANCE.reentry.endingAltitude,
+            progress: 1,
+            atmosphere: 0.28,
+            speed: 0.22
+        }
+        this.debris.forEach((item) => item.destroy())
+        this.debris = []
+        this.spawnSystem.reset()
+        this.landingText.setText('PARACHUTE DEPLOYED')
+        this.cameras.main.shake(140, 0.002)
+    }
+
     private getSpinRatio (): number
     {
         return clamp(Math.abs(this.capsule.angularVelocity) / BALANCE.capsule.maxAngularVelocity, 0, 1)
@@ -433,6 +505,7 @@ export class Game extends Scene
 
     private drawSplashdownBurst (): void
     {
+        this.updateOceanFx(1)
         this.ocean.fillStyle(0xe0f2fe, 0.9)
         this.ocean.fillCircle(this.capsule.x, this.capsule.y + 38, 46)
         this.ocean.fillStyle(0x7dd3fc, 0.75)
@@ -442,11 +515,66 @@ export class Game extends Scene
         this.ocean.lineBetween(this.capsule.x + 86, this.capsule.y + 52, this.capsule.x + 22, this.capsule.y + 4)
     }
 
+    private drawParachute (progress: number): void
+    {
+        this.parachute.clear()
+
+        if (progress <= 0)
+        {
+            return
+        }
+
+        const canopyWidth = lerp(18, 144, progress)
+        const canopyHeight = lerp(8, 62, progress)
+        const canopyY = this.capsule.y - 116
+        const alpha = clamp(progress * 1.25, 0, 1)
+
+        this.parachute.lineStyle(2, 0xe0f2fe, 0.78 * alpha)
+        this.parachute.lineBetween(this.capsule.x - 31, this.capsule.y - 22, this.capsule.x - (canopyWidth * 0.4), canopyY + 28)
+        this.parachute.lineBetween(this.capsule.x, this.capsule.y - 31, this.capsule.x, canopyY + 18)
+        this.parachute.lineBetween(this.capsule.x + 31, this.capsule.y - 22, this.capsule.x + (canopyWidth * 0.4), canopyY + 28)
+        this.parachute.fillStyle(0xf8fafc, 0.92 * alpha)
+        this.parachute.fillEllipse(this.capsule.x, canopyY + 24, canopyWidth, canopyHeight)
+        this.parachute.fillStyle(0xef4444, 0.72 * alpha)
+        this.parachute.fillTriangle(
+            this.capsule.x - (canopyWidth * 0.42),
+            canopyY + 24,
+            this.capsule.x,
+            canopyY - 6,
+            this.capsule.x,
+            canopyY + 24
+        )
+        this.parachute.fillTriangle(
+            this.capsule.x,
+            canopyY + 24,
+            this.capsule.x + (canopyWidth * 0.42),
+            canopyY + 24,
+            this.capsule.x,
+            canopyY - 6
+        )
+        this.parachute.lineStyle(3, 0x0f172a, 0.74 * alpha)
+        this.parachute.strokeEllipse(this.capsule.x, canopyY + 24, canopyWidth, canopyHeight)
+    }
+
     private drawBackdrop (): void
     {
         this.backdrop = this.add.graphics()
         this.altitudeLines = this.add.graphics()
         this.ocean = this.add.graphics()
+        this.parachute = this.add.graphics()
+        this.backdrop.setDepth(-30)
+        this.altitudeLines.setDepth(-20)
+        this.parachute.setDepth(1)
+        this.ocean.setDepth(2)
+        this.landingText = this.add.text(GAME_CENTER_X, 156, '', {
+            fontFamily: 'Arial Black',
+            fontSize: 23,
+            color: '#e0f2fe',
+            stroke: '#05060a',
+            strokeThickness: 6,
+            align: 'center',
+            wordWrap: { width: GAME_WIDTH - 32 }
+        }).setOrigin(0.5).setDepth(4)
         this.altitudeLabels = Array.from({ length: ALTITUDE_MARKER_LABELS }, () => {
             return this.add.text(0, 0, '', {
                 fontFamily: 'Arial',
@@ -455,6 +583,7 @@ export class Game extends Scene
             })
                 .setOrigin(0, 0.5)
                 .setStroke('#07111f', 4)
+                .setDepth(-19)
                 .setVisible(false)
         })
     }
