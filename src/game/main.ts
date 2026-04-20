@@ -1,5 +1,6 @@
 import { Boot } from './scenes/Boot'
 import { GameOver } from './scenes/GameOver'
+import { MainMenu } from './scenes/MainMenu'
 import { Game as MainGame } from './scenes/Game'
 import { GAME_HEIGHT, GAME_WIDTH } from './config/screen'
 import { AUTO, Game, Scale } from 'phaser'
@@ -9,6 +10,7 @@ const config: Phaser.Types.Core.GameConfig = {
     backgroundColor: '#06080d',
     scene: [
         Boot,
+        MainMenu,
         MainGame,
         GameOver
     ]
