@@ -1,5 +1,6 @@
 import { Scene } from 'phaser'
 import { GAME_CENTER_X, GAME_HEIGHT, GAME_WIDTH } from '../config/screen'
+import { MUSIC_KEYS, playMusic } from '../systems/MusicSystem'
 import type { RunResult } from '../types'
 
 export class GameOver extends Scene
@@ -24,6 +25,8 @@ export class GameOver extends Scene
 
     create (): void
     {
+        playMusic(this, MUSIC_KEYS.results)
+
         this.cameras.main.setBackgroundColor(this.result.survived ? 0x081915 : 0x170609)
         this.drawBackdrop()
 

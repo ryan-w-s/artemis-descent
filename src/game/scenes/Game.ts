@@ -7,6 +7,7 @@ import { CollisionSystem } from '../systems/CollisionSystem'
 import { FlightSystem } from '../systems/FlightSystem'
 import { HeatSystem } from '../systems/HeatSystem'
 import { InstabilitySystem } from '../systems/InstabilitySystem'
+import { MUSIC_KEYS, playMusic } from '../systems/MusicSystem'
 import { SpawnSystem } from '../systems/SpawnSystem'
 import type { FailureReason, FlightState, HeatState, RunResult } from '../types'
 import { Hud } from '../ui/Hud'
@@ -103,6 +104,8 @@ export class Game extends Scene
 
     create (): void
     {
+        playMusic(this, MUSIC_KEYS.gameplay)
+
         this.cameras.main.setBackgroundColor(0x06080d)
         this.drawBackdrop()
 
