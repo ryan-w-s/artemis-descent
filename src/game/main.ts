@@ -8,6 +8,9 @@ import { AUTO, Game, Scale } from 'phaser'
 const config: Phaser.Types.Core.GameConfig = {
     type: AUTO,
     backgroundColor: '#06080d',
+    input: {
+        activePointers: 2
+    },
     scene: [
         Boot,
         MainMenu,

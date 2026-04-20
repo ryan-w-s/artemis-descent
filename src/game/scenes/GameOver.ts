@@ -38,7 +38,7 @@ export class GameOver extends Scene
             `Time in corridor: ${this.result.durationSeconds.toFixed(1)}s`,
             `Hull damage: ${Math.round(this.result.damage)}%`,
             '',
-            'Press SPACE, R, or click to retry'
+            'Press SPACE, R, or click for main menu'
         ].join('\n')
 
         this.add.text(GAME_CENTER_X, 222, title, {
@@ -60,11 +60,11 @@ export class GameOver extends Scene
             wordWrap: { width: GAME_WIDTH - 56 }
         }).setOrigin(0.5)
 
-        const restart = () => this.scene.start('Game')
+        const returnToMenu = () => this.scene.start('MainMenu')
 
-        this.input.once('pointerdown', restart)
-        this.input.keyboard?.once('keydown-SPACE', restart)
-        this.input.keyboard?.once('keydown-R', restart)
+        this.input.once('pointerdown', returnToMenu)
+        this.input.keyboard?.once('keydown-SPACE', returnToMenu)
+        this.input.keyboard?.once('keydown-R', returnToMenu)
     }
 
     private drawBackdrop (): void

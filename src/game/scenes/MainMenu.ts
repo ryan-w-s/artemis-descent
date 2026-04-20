@@ -174,7 +174,7 @@ export class MainMenu extends Scene
     private drawBriefing (): void
     {
         const briefing = [
-            'Left / Right or A / D to correct.',
+            'Hold left / right side or use A / D to correct.',
             'Keep the heat shield facing down.',
             'Survive instability, heat, and debris.'
         ].join('\n')

@@ -9,6 +9,7 @@ import { HeatSystem } from '../systems/HeatSystem'
 import { InstabilitySystem } from '../systems/InstabilitySystem'
 import { MUSIC_KEYS, playMusic } from '../systems/MusicSystem'
 import { SpawnSystem } from '../systems/SpawnSystem'
+import type { CapsuleControl } from '../entities/Capsule'
 import type { FailureReason, FlightState, HeatState, RunResult } from '../types'
 import { Hud } from '../ui/Hud'
 import { clamp, lerp, shortestAngle } from '../utils/math'
@@ -129,7 +130,7 @@ export class Game extends Scene
         this.hud = new Hud(this)
         this.keys = this.createKeys()
 
-        this.add.text(GAME_CENTER_X, GAME_HEIGHT - 36, 'Shield down. Left/Right or A/D to correct.', {
+        this.add.text(GAME_CENTER_X, GAME_HEIGHT - 36, 'Shield down. Hold left/right side or use A/D to correct.', {
             fontFamily: 'Arial',
             fontSize: 17,
             color: '#cbd5e1',
@@ -210,12 +211,41 @@ export class Game extends Scene
         }
     }
 
-    private readControls ()
+    private readControls (): CapsuleControl
     {
+        const pointerControls = this.readPointerControls()
+
         return {
-            left: this.keys.left.isDown || this.keys.a.isDown,
-            right: this.keys.right.isDown || this.keys.d.isDown
+            left: this.keys.left.isDown || this.keys.a.isDown || pointerControls.left,
+            right: this.keys.right.isDown || this.keys.d.isDown || pointerControls.right
         }
+    }
+
+    private readPointerControls (): CapsuleControl
+    {
+        const controls: CapsuleControl = {
+            left: false,
+            right: false
+        }
+
+        for (const pointer of this.input.manager.pointers)
+        {
+            if (!pointer.isDown || pointer.wasCanceled)
+            {
+                continue
+            }
+
+            if (pointer.x < GAME_CENTER_X)
+            {
+                controls.left = true
+            }
+            else
+            {
+                controls.right = true
+            }
+        }
+
+        return controls
     }
 
     private updateDebris (deltaSeconds: number): void
