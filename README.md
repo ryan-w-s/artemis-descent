@@ -17,6 +17,21 @@ The dev server runs on `http://localhost:8080`.
 bun run build
 ```
 
+## Deploy To GitHub Pages
+
+This repo includes a GitHub Pages workflow at `.github/workflows/deploy-pages.yml`.
+
+1. Push the repository to GitHub.
+2. In GitHub, open `Settings > Pages`.
+3. Set the source to `GitHub Actions`.
+4. Push to the `main` branch.
+
+After the workflow finishes, the game will be available at:
+
+`https://<your-github-username>.github.io/artemis-descent/`
+
+If you publish from a different repository name, the URL path changes to match that repository name.
+
 ## Controls
 
 - `Left` / `A`: rotate capsule left
