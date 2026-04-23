@@ -11,6 +11,7 @@ export class Boot extends Scene
     preload (): void
     {
         preloadMusic(this)
+        this.load.image('obstacle-plane', 'assets/obstacles/plane.png')
     }
 
     create ()

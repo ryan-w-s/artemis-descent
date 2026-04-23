@@ -1,0 +1,63 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 256" role="img" aria-labelledby="title desc">
+  <title id="title">Side View Plane Obstacle</title>
+  <desc id="desc">A scorched side-view aircraft obstacle sprite for an arcade reentry game.</desc>
+  <defs>
+    <linearGradient id="fuselage" x1="88" y1="114" x2="438" y2="136" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#8b98a8"/>
+      <stop offset="0.18" stop-color="#f4f8fb"/>
+      <stop offset="0.58" stop-color="#d7e0ea"/>
+      <stop offset="0.86" stop-color="#f8fafc"/>
+      <stop offset="1" stop-color="#9ba8b7"/>
+    </linearGradient>
+    <linearGradient id="wing" x1="205" y1="123" x2="302" y2="217" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#eef4f8"/>
+      <stop offset="0.62" stop-color="#aebdca"/>
+      <stop offset="1" stop-color="#5f6f82"/>
+    </linearGradient>
+    <linearGradient id="burn" x1="418" y1="107" x2="478" y2="131" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#263241"/>
+      <stop offset="0.55" stop-color="#111827"/>
+      <stop offset="1" stop-color="#f97316"/>
+    </linearGradient>
+    <radialGradient id="plasma" cx="0" cy="0" r="1" gradientTransform="matrix(118 0 0 36 422 134)" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#fb923c" stop-opacity="0.68"/>
+      <stop offset="0.42" stop-color="#f97316" stop-opacity="0.22"/>
+      <stop offset="1" stop-color="#f97316" stop-opacity="0"/>
+    </radialGradient>
+    <filter id="softGlow" x="-25%" y="-50%" width="150%" height="200%" color-interpolation-filters="sRGB">
+      <feGaussianBlur stdDeviation="5"/>
+    </filter>
+  </defs>
+
+  <ellipse cx="424" cy="134" rx="116" ry="34" fill="url(#plasma)" filter="url(#softGlow)"/>
+
+  <path d="M87 124C113 101 183 91 283 96c66 3 122 13 153 24 13 5 32 15 36 24-8 8-26 12-44 13-53 4-135 4-214-3-74-6-120-16-127-30Z" fill="url(#fuselage)"/>
+  <path d="M423 118c19 5 40 14 49 26-8 7-25 11-43 12-12 1-28 1-44 1 14-11 27-24 38-39Z" fill="url(#burn)"/>
+
+  <path d="M215 134c44 15 84 43 120 78-35-2-75-11-121-29l-64-25c20-10 40-18 65-24Z" fill="url(#wing)"/>
+  <path d="M203 113c34-20 76-40 126-59-22 32-47 58-75 78-19-5-37-11-51-19Z" fill="#c4cfda"/>
+
+  <path d="M109 115 56 63c34 6 71 28 99 52-16-1-31-1-46 0Z" fill="#dbe4ec"/>
+  <path d="M113 133 62 177c29 0 61-16 94-39-15-1-29-3-43-5Z" fill="#aab8c7"/>
+
+  <path d="M147 109c31-9 85-12 139-9" fill="none" stroke="#ffffff" stroke-width="6" stroke-linecap="round" opacity="0.48"/>
+  <path d="M143 139c63 10 148 16 241 14" fill="none" stroke="#667789" stroke-width="5" stroke-linecap="round" opacity="0.55"/>
+
+  <path d="M293 105c12 1 24 2 36 4" fill="none" stroke="#1f2937" stroke-width="5" stroke-linecap="round"/>
+  <path d="M345 113c12 2 24 5 35 8" fill="none" stroke="#1f2937" stroke-width="5" stroke-linecap="round"/>
+  <path d="M397 127c12 3 23 7 33 12" fill="none" stroke="#fb923c" stroke-width="4" stroke-linecap="round" opacity="0.85"/>
+
+  <path d="M246 132c21 8 42 21 64 39" fill="none" stroke="#f8fafc" stroke-width="5" stroke-linecap="round" opacity="0.42"/>
+  <path d="M220 138c36 15 68 39 96 69" fill="none" stroke="#334155" stroke-width="4" stroke-linecap="round" opacity="0.75"/>
+
+  <circle cx="168" cy="118" r="5" fill="#0f172a" opacity="0.78"/>
+  <circle cx="190" cy="116" r="5" fill="#0f172a" opacity="0.78"/>
+  <circle cx="212" cy="116" r="5" fill="#0f172a" opacity="0.78"/>
+  <circle cx="234" cy="117" r="5" fill="#0f172a" opacity="0.78"/>
+
+  <path d="M87 124C113 101 183 91 283 96c66 3 122 13 153 24 13 5 32 15 36 24-8 8-26 12-44 13-53 4-135 4-214-3-74-6-120-16-127-30Z" fill="none" stroke="#111827" stroke-width="7" stroke-linejoin="round"/>
+  <path d="M215 134c44 15 84 43 120 78-35-2-75-11-121-29l-64-25c20-10 40-18 65-24Z" fill="none" stroke="#111827" stroke-width="6" stroke-linejoin="round"/>
+  <path d="M203 113c34-20 76-40 126-59-22 32-47 58-75 78-19-5-37-11-51-19Z" fill="none" stroke="#111827" stroke-width="6" stroke-linejoin="round"/>
+  <path d="M109 115 56 63c34 6 71 28 99 52-16-1-31-1-46 0Z" fill="none" stroke="#111827" stroke-width="6" stroke-linejoin="round"/>
+  <path d="M113 133 62 177c29 0 61-16 94-39-15-1-29-3-43-5Z" fill="none" stroke="#111827" stroke-width="6" stroke-linejoin="round"/>
+</svg>

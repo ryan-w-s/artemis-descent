@@ -1,11 +1,17 @@
 import { GameObjects, Scene } from 'phaser'
+import { pointToSegmentDistance } from '../utils/math'
 
 export type DebrisKind = 'asteroid' | 'satellite' | 'plane' | 'seagull';
+const PLANE_TEXTURE_KEY = 'obstacle-plane'
+const PLANE_SPRITE_WIDTH_MULTIPLIER = 5.2
+const PLANE_SPRITE_ASPECT_RATIO = 0.34
+const PLANE_COLLISION_LENGTH_MULTIPLIER = 0.66
+const PLANE_COLLISION_RADIUS_MULTIPLIER = 0.42
 
 export class Debris
 {
     readonly radius: number
-    readonly body: GameObjects.Graphics
+    readonly body: GameObjects.Graphics | GameObjects.Image
     readonly kind: DebrisKind
     x: number
     y: number
@@ -29,7 +35,7 @@ export class Debris
         this.velocityY = velocityY
         this.radius = radius
         this.kind = kind
-        this.body = scene.add.graphics()
+        this.body = this.createBody(scene)
         this.draw()
     }
 
@@ -65,96 +71,150 @@ export class Debris
         }
     }
 
+    collidesWithCircle (x: number, y: number, radius: number): boolean
+    {
+        if (this.kind === 'plane')
+        {
+            return this.planeCollidesWithCircle(x, y, radius)
+        }
+
+        const distance = Math.hypot(this.x - x, this.y - y)
+        return distance <= this.getCollisionRadius() + radius
+    }
+
     private draw (): void
     {
-        this.body.clear()
         this.body.setPosition(this.x, this.y)
-        this.body.setRotation(0)
 
         switch (this.kind)
         {
             case 'asteroid':
+                this.requireGraphics().clear()
+                this.body.setRotation(0)
                 this.drawAsteroid()
                 break
             case 'satellite':
+                this.requireGraphics().clear()
+                this.body.setRotation(0)
                 this.drawSatellite()
                 break
             case 'plane':
                 this.drawPlane()
                 break
             case 'seagull':
+                this.requireGraphics().clear()
+                this.body.setRotation(0)
                 this.drawSeagull()
                 break
         }
     }
 
+    private createBody (scene: Scene): GameObjects.Graphics | GameObjects.Image
+    {
+        if (this.kind === 'plane')
+        {
+            return scene.add.image(this.x, this.y, PLANE_TEXTURE_KEY)
+                .setOrigin(0.5)
+                .setDepth(1)
+        }
+
+        return scene.add.graphics()
+    }
+
+    private requireGraphics (): GameObjects.Graphics
+    {
+        if (this.body instanceof GameObjects.Graphics)
+        {
+            return this.body
+        }
+
+        throw new Error(`Debris kind "${this.kind}" does not use a graphics body.`)
+    }
+
     private drawAsteroid (): void
     {
-        this.body.fillStyle(0xa8a29e, 1)
-        this.body.fillTriangle(-this.radius, -this.radius * 0.4, -this.radius * 0.2, -this.radius, this.radius, -this.radius * 0.2)
-        this.body.fillTriangle(-this.radius, -this.radius * 0.4, this.radius, -this.radius * 0.2, this.radius * 0.35, this.radius)
-        this.body.lineStyle(2, 0x1c1917, 1)
-        this.body.strokeTriangle(-this.radius, -this.radius * 0.4, -this.radius * 0.2, -this.radius, this.radius, -this.radius * 0.2)
-        this.body.strokeTriangle(-this.radius, -this.radius * 0.4, this.radius, -this.radius * 0.2, this.radius * 0.35, this.radius)
+        const graphics = this.requireGraphics()
+
+        graphics.fillStyle(0xa8a29e, 1)
+        graphics.fillTriangle(-this.radius, -this.radius * 0.4, -this.radius * 0.2, -this.radius, this.radius, -this.radius * 0.2)
+        graphics.fillTriangle(-this.radius, -this.radius * 0.4, this.radius, -this.radius * 0.2, this.radius * 0.35, this.radius)
+        graphics.lineStyle(2, 0x1c1917, 1)
+        graphics.strokeTriangle(-this.radius, -this.radius * 0.4, -this.radius * 0.2, -this.radius, this.radius, -this.radius * 0.2)
+        graphics.strokeTriangle(-this.radius, -this.radius * 0.4, this.radius, -this.radius * 0.2, this.radius * 0.35, this.radius)
     }
 
     private drawSatellite (): void
     {
+        const graphics = this.requireGraphics()
         const size = this.radius
 
-        this.body.fillStyle(0x9ca3af, 1)
-        this.body.fillRect(-size * 0.45, -size * 0.45, size * 0.9, size * 0.9)
-        this.body.lineStyle(2, 0x111827, 1)
-        this.body.strokeRect(-size * 0.45, -size * 0.45, size * 0.9, size * 0.9)
+        graphics.fillStyle(0x9ca3af, 1)
+        graphics.fillRect(-size * 0.45, -size * 0.45, size * 0.9, size * 0.9)
+        graphics.lineStyle(2, 0x111827, 1)
+        graphics.strokeRect(-size * 0.45, -size * 0.45, size * 0.9, size * 0.9)
 
-        this.body.fillStyle(0x38bdf8, 0.85)
-        this.body.fillRect(-size * 1.85, -size * 0.38, size * 1.1, size * 0.76)
-        this.body.fillRect(size * 0.75, -size * 0.38, size * 1.1, size * 0.76)
-        this.body.lineStyle(2, 0x082f49, 1)
-        this.body.strokeRect(-size * 1.85, -size * 0.38, size * 1.1, size * 0.76)
-        this.body.strokeRect(size * 0.75, -size * 0.38, size * 1.1, size * 0.76)
-        this.body.lineBetween(-size * 0.75, 0, size * 0.75, 0)
+        graphics.fillStyle(0x38bdf8, 0.85)
+        graphics.fillRect(-size * 1.85, -size * 0.38, size * 1.1, size * 0.76)
+        graphics.fillRect(size * 0.75, -size * 0.38, size * 1.1, size * 0.76)
+        graphics.lineStyle(2, 0x082f49, 1)
+        graphics.strokeRect(-size * 1.85, -size * 0.38, size * 1.1, size * 0.76)
+        graphics.strokeRect(size * 0.75, -size * 0.38, size * 1.1, size * 0.76)
+        graphics.lineBetween(-size * 0.75, 0, size * 0.75, 0)
     }
 
     private drawPlane (): void
     {
-        const size = this.radius
+        if (!(this.body instanceof GameObjects.Image))
+        {
+            return
+        }
 
-        this.body.fillStyle(0xf8fafc, 1)
-        this.body.fillEllipse(-size * 0.12, 0, size * 3.35, size * 0.72)
-        this.body.fillTriangle(size * 1.1, -size * 0.28, size * 1.78, 0, size * 1.1, size * 0.28)
-        this.body.fillTriangle(-size * 1.48, -size * 0.28, -size * 1.78, -size * 1.08, -size * 1.08, -size * 0.22)
+        const width = this.getPlaneSpriteWidth()
+        const height = width * PLANE_SPRITE_ASPECT_RATIO
+        const tilt = this.getPlaneRotation()
 
-        this.body.fillStyle(0xdbe4ef, 1)
-        this.body.fillTriangle(-size * 0.34, -size * 0.1, size * 0.6, size * 0.98, size * 0.2, size * 0.14)
-        this.body.fillTriangle(-size * 0.92, -size * 0.08, -size * 1.4, size * 0.4, -size * 0.7, size * 0.1)
-        this.body.fillEllipse(size * 0.34, size * 0.52, size * 0.48, size * 0.38)
+        this.body
+            .setDisplaySize(width, height)
+            .setRotation(tilt)
+    }
 
-        this.body.lineStyle(2, 0x1f2937, 1)
-        this.body.strokeEllipse(-size * 0.12, 0, size * 3.35, size * 0.72)
-        this.body.strokeTriangle(size * 1.1, -size * 0.28, size * 1.78, 0, size * 1.1, size * 0.28)
-        this.body.strokeTriangle(-size * 1.48, -size * 0.28, -size * 1.78, -size * 1.08, -size * 1.08, -size * 0.22)
-        this.body.strokeTriangle(-size * 0.34, -size * 0.1, size * 0.6, size * 0.98, size * 0.2, size * 0.14)
-        this.body.strokeTriangle(-size * 0.92, -size * 0.08, -size * 1.4, size * 0.4, -size * 0.7, size * 0.1)
-        this.body.strokeEllipse(size * 0.34, size * 0.52, size * 0.48, size * 0.38)
+    private planeCollidesWithCircle (x: number, y: number, radius: number): boolean
+    {
+        const rotation = this.getPlaneRotation()
+        const halfLength = (this.getPlaneSpriteWidth() * PLANE_COLLISION_LENGTH_MULTIPLIER) * 0.5
+        const collisionRadius = (this.radius * PLANE_COLLISION_RADIUS_MULTIPLIER) + radius
+        const directionX = Math.cos(rotation)
+        const directionY = Math.sin(rotation)
+        const startX = this.x - (directionX * halfLength)
+        const startY = this.y - (directionY * halfLength)
+        const endX = this.x + (directionX * halfLength)
+        const endY = this.y + (directionY * halfLength)
+        const distance = pointToSegmentDistance(x, y, startX, startY, endX, endY)
 
-        this.body.lineStyle(2, 0x94a3b8, 0.9)
-        this.body.lineBetween(-size * 1.26, 0, size * 1.08, 0)
+        return distance <= collisionRadius
+    }
 
-        this.body.fillStyle(0x1e293b, 0.9)
-        this.body.fillTriangle(size * 1.12, -size * 0.18, size * 1.48, -size * 0.08, size * 1.14, size * 0.02)
+    private getPlaneRotation (): number
+    {
+        return Math.atan2(this.velocityY, this.velocityX) + Math.PI / 2
+    }
+
+    private getPlaneSpriteWidth (): number
+    {
+        return this.radius * PLANE_SPRITE_WIDTH_MULTIPLIER
     }
 
     private drawSeagull (): void
     {
+        const graphics = this.requireGraphics()
         const size = this.radius
 
-        this.body.lineStyle(4, 0xf8fafc, 1)
-        this.body.lineBetween(-size * 1.55, 0, -size * 0.35, -size * 0.45)
-        this.body.lineBetween(-size * 0.35, -size * 0.45, 0, 0)
-        this.body.lineBetween(0, 0, size * 0.35, -size * 0.45)
-        this.body.lineBetween(size * 0.35, -size * 0.45, size * 1.55, 0)
-        this.body.lineStyle(2, 0x334155, 1)
-        this.body.lineBetween(-size * 0.24, 0, size * 0.24, 0)
+        graphics.lineStyle(4, 0xf8fafc, 1)
+        graphics.lineBetween(-size * 1.55, 0, -size * 0.35, -size * 0.45)
+        graphics.lineBetween(-size * 0.35, -size * 0.45, 0, 0)
+        graphics.lineBetween(0, 0, size * 0.35, -size * 0.45)
+        graphics.lineBetween(size * 0.35, -size * 0.45, size * 1.55, 0)
+        graphics.lineStyle(2, 0x334155, 1)
+        graphics.lineBetween(-size * 0.24, 0, size * 0.24, 0)
     }
 }
