@@ -43,6 +43,8 @@ export class MainMenu extends Scene
 
     create (): void
     {
+        this.hasStarted = false
+
         playMusic(this, MUSIC_KEYS.menu)
 
         this.cameras.main.setBackgroundColor(0x06080d)
@@ -72,7 +74,7 @@ export class MainMenu extends Scene
         this.capsule.setRotation(Math.sin(timeMs * 0.0018) * 0.08)
         this.plasma.setAlpha(0.42 + (pulse * 0.18))
 
-        if (this.keys.space.isDown || this.keys.enter.isDown)
+        if (Input.Keyboard.JustDown(this.keys.space) || Input.Keyboard.JustDown(this.keys.enter))
         {
             this.startGame()
         }
