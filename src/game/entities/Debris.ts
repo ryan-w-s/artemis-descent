@@ -120,17 +120,29 @@ export class Debris
     {
         const size = this.radius
 
-        this.body.save()
-        this.body.rotateCanvas(Math.PI / 2)
-        this.body.fillStyle(0xe5e7eb, 1)
-        this.body.fillTriangle(0, -size * 1.6, -size * 0.38, size * 1.05, size * 0.38, size * 1.05)
-        this.body.fillTriangle(-size * 1.55, size * 0.1, 0, -size * 0.35, size * 1.55, size * 0.1)
-        this.body.fillTriangle(-size * 0.9, size * 1.25, 0, size * 0.65, size * 0.9, size * 1.25)
+        this.body.fillStyle(0xf8fafc, 1)
+        this.body.fillEllipse(-size * 0.12, 0, size * 3.35, size * 0.72)
+        this.body.fillTriangle(size * 1.1, -size * 0.28, size * 1.78, 0, size * 1.1, size * 0.28)
+        this.body.fillTriangle(-size * 1.48, -size * 0.28, -size * 1.78, -size * 1.08, -size * 1.08, -size * 0.22)
+
+        this.body.fillStyle(0xdbe4ef, 1)
+        this.body.fillTriangle(-size * 0.34, -size * 0.1, size * 0.6, size * 0.98, size * 0.2, size * 0.14)
+        this.body.fillTriangle(-size * 0.92, -size * 0.08, -size * 1.4, size * 0.4, -size * 0.7, size * 0.1)
+        this.body.fillEllipse(size * 0.34, size * 0.52, size * 0.48, size * 0.38)
+
         this.body.lineStyle(2, 0x1f2937, 1)
-        this.body.lineBetween(0, -size * 1.6, -size * 0.38, size * 1.05)
-        this.body.lineBetween(0, -size * 1.6, size * 0.38, size * 1.05)
-        this.body.lineBetween(-size * 1.55, size * 0.1, size * 1.55, size * 0.1)
-        this.body.restore()
+        this.body.strokeEllipse(-size * 0.12, 0, size * 3.35, size * 0.72)
+        this.body.strokeTriangle(size * 1.1, -size * 0.28, size * 1.78, 0, size * 1.1, size * 0.28)
+        this.body.strokeTriangle(-size * 1.48, -size * 0.28, -size * 1.78, -size * 1.08, -size * 1.08, -size * 0.22)
+        this.body.strokeTriangle(-size * 0.34, -size * 0.1, size * 0.6, size * 0.98, size * 0.2, size * 0.14)
+        this.body.strokeTriangle(-size * 0.92, -size * 0.08, -size * 1.4, size * 0.4, -size * 0.7, size * 0.1)
+        this.body.strokeEllipse(size * 0.34, size * 0.52, size * 0.48, size * 0.38)
+
+        this.body.lineStyle(2, 0x94a3b8, 0.9)
+        this.body.lineBetween(-size * 1.26, 0, size * 1.08, 0)
+
+        this.body.fillStyle(0x1e293b, 0.9)
+        this.body.fillTriangle(size * 1.12, -size * 0.18, size * 1.48, -size * 0.08, size * 1.14, size * 0.02)
     }
 
     private drawSeagull (): void
