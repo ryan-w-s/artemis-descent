@@ -2,6 +2,8 @@
 
 A short-session arcade reentry game built with Phaser 4, TypeScript, Vite, and Bun.
 
+![Artemis Descent gameplay screenshot](artemis-descent.png)
+
 ## Play
 
 ```bash
